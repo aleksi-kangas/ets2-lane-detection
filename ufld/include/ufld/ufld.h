@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -33,7 +34,7 @@ class ILaneDetector {
   [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image) {
     auto input = Preprocess(image);
     auto predictions = Inference(input);
-    return PredictionsToLanes(predictions);
+    return PredictionsToLanes(predictions, image.cols, image.rows);
   }
 
  protected:
@@ -57,7 +58,8 @@ class ILaneDetector {
 
   [[nodiscard]] virtual Ort::Value Inference(const Ort::Value& input) = 0;
 
-  [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(const Ort::Value& predictions) = 0;
+  [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(const Ort::Value& predictions, int32_t image_width,
+                                                             int32_t image_height) = 0;
 };
 
 }  // namespace ufld
