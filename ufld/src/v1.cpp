@@ -1,10 +1,64 @@
 #include "ufld/v1.h"
 
+#include <array>
 #include <cassert>
 #include <cstring>
 #include <filesystem>
 #include <numeric>
 #include <stdexcept>
+
+namespace {
+
+std::vector<float> Softmax_0(const std::vector<float>& input, const std::array<int32_t, 3>& dimensions) {
+  std::vector<float> softmax(input.size());
+  const auto dim1 = dimensions[0];
+  const auto dim2 = dimensions[1];
+  const auto dim3 = dimensions[2];
+
+  for (int32_t d2 = 0; d2 < dim2; ++d2) {
+    for (int32_t d3 = 0; d3 < dim3; ++d3) {
+      float sum = 0;
+      auto index = [=](auto d1) {
+        return d1 * dim2 * dim3 + d2 * dim3 + d3;
+      };
+
+      for (int32_t d1 = 0; d1 < dim1; ++d1) {
+        sum += std::exp(input[index(d1)]);
+      }
+      for (int32_t d1 = 0; d1 < dim1; ++d1) {
+        softmax[index(d1)] = std::exp(input[index(d1)]) / sum;
+      }
+    }
+  }
+  return softmax;
+}
+
+std::vector<int32_t> ArgMax_0(const std::vector<float>& input, const std::array<int32_t, 3>& dimensions) {
+  const auto dim1 = dimensions[0];
+  const auto dim2 = dimensions[1];
+  const auto dim3 = dimensions[2];
+  std::vector<int32_t> argmax(dim2 * dim3);
+  for (int32_t d2 = 0; d2 < dim2; ++d2) {
+    for (int32_t d3 = 0; d3 < dim3; ++d3) {
+      float max = input[d2 * dim3 + d3];
+      int32_t argmax_index = 0;
+      auto index = [=](auto d1) {
+        return d1 * dim2 * dim3 + d2 * dim3 + d3;
+      };
+
+      for (int32_t d1 = 1; d1 < dim1; ++d1) {
+        if (input[index(d1)] > max) {
+          max = input[index(d1)];
+          argmax_index = d1;
+        }
+      }
+      argmax[d2 * dim3 + d3] = argmax_index;
+    }
+  }
+  return argmax;
+}
+
+}  // namespace
 
 namespace ufld::v1 {
 
@@ -16,6 +70,17 @@ LaneDetector::LaneDetector(ModelType model_type) {
         return base_path.append("ufld_v1_culane_288x800.onnx");
       case ModelType::kTuSimple:
         return base_path.append("TODO");  // TODO
+      default:
+        throw std::invalid_argument{"Invalid model type"};
+    }
+  }();
+
+  config_ = [=]() -> std::unique_ptr<IConfig> {
+    switch (model_type) {
+      case ModelType::kCULane:
+        return std::make_unique<CULaneConfig>();
+      case ModelType::kTuSimple:
+        return std::make_unique<TuSimpleConfig>();
       default:
         throw std::invalid_argument{"Invalid model type"};
     }
@@ -52,8 +117,38 @@ Ort::Value LaneDetector::Inference(const Ort::Value& input) {
   return output;
 }
 
-std::vector<Lane> LaneDetector::PredictionsToLanes(const Ort::Value& predictions) {
-  return {};
+std::vector<Lane> LaneDetector::PredictionsToLanes(const Ort::Value& predictions, int32_t image_width,
+                                                   int32_t image_height) {
+  // https://github.com/cfzd/Ultra-Fast-Lane-Detection/blob/master/demo.py
+  std::vector<float> predictions_raw(
+      predictions.GetTensorData<float>(),
+      predictions.GetTensorData<float>() + predictions.GetTensorTypeAndShapeInfo().GetElementCount());
+  std::vector<float> probabilities =
+      Softmax_0(predictions_raw, {config_->griding_num, config_->cls_num_per_lane, kLaneCount});
+  std::vector<int32_t> predicted_cells =
+      ArgMax_0(probabilities, {config_->griding_num, config_->cls_num_per_lane, kLaneCount});
+  std::vector<Lane> lanes;
+  for (int32_t lane_index = 0; lane_index < kLaneCount; ++lane_index) {
+    Lane lane;
+    for (int32_t class_index = 0; class_index < config_->cls_num_per_lane; ++class_index) {
+      const int32_t kIndexOfNoLane = config_->griding_num - 1;
+      const auto index = class_index * kLaneCount + lane_index;
+      if (predicted_cells[index] == kIndexOfNoLane) {
+        continue;
+      }
+
+      // TODO This is strictly not correct. Should use linspace.
+      const float kGridCellWidth = (kInputWidth) / static_cast<float>(config_->griding_num);
+      const auto x = static_cast<float>(predicted_cells[index]) * kGridCellWidth * static_cast<float>(image_width) /
+                     static_cast<float>(kInputWidth);
+      const auto y = static_cast<float>(config_->row_anchors[class_index]) * static_cast<float>(image_height) /
+                     static_cast<float>(kInputHeight);
+      lane.emplace_back(x, y);
+    }
+    lanes.push_back(lane);
+  }
+
+  return lanes;
 }
 
 void LaneDetector::InitSession(const std::filesystem::path& model_path) {
