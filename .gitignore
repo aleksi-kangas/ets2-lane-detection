@@ -1,0 +1,4 @@
+.idea
+cmake-build-debug-visual-studio
+models
+!models/README.md
