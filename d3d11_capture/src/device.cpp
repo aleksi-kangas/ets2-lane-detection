@@ -19,20 +19,10 @@ Device::Device(CComPtr<IDXGIAdapter1> dxgi_adapter1) : dxgi_adapter1_{std::move(
     throw std::runtime_error{"TODO"};  // TODO
   }
   d3d11_device_->GetImmediateContext(&d3d11_device_immediate_context_);
-}
 
-std::vector<CComPtr<IDXGIOutput1>> Device::EnumerateDXGIOutputs() {
-  std::vector<CComPtr<IDXGIOutput1>> dxgi_outputs;
-  CComPtr<IDXGIOutput> dxgi_output{nullptr};
-  for (uint32_t i = 0; dxgi_adapter1_->EnumOutputs(i, &dxgi_output) != DXGI_ERROR_NOT_FOUND; ++i) {
-    CComQIPtr<IDXGIOutput1> dxgi_output1{dxgi_output};
-    if (!dxgi_output1) {
-      throw std::runtime_error{"TODO"};  // TODO
-    }
-    dxgi_output.Release();
-    dxgi_outputs.push_back(dxgi_output1);
+  for (const auto& dxgi_output1 : EnumerateDXGIOutputs()) {
+    outputs_.emplace_back(dxgi_output1);
   }
-  return dxgi_outputs;
 }
 
 ID3D11Device* Device::D3D11Device() const {
@@ -47,12 +37,34 @@ ID3D11DeviceContext* Device::D3D11DeviceImmediateContext() const {
   return d3d11_device_immediate_context_;
 }
 
+int32_t Device::DXGIOutputCount() const {
+  return static_cast<int32_t>(outputs_.size());
+}
+
+Output& Device::DXGIOutput(int32_t index) {
+  return outputs_[index];
+}
+
 uint64_t Device::DedicatedVideoMemory() const {
   return dxgi_adapter_desc1_.DedicatedVideoMemory;
 }
 
 std::wstring Device::Description() const {
   return {dxgi_adapter_desc1_.Description, dxgi_adapter_desc1_.Description + wcslen(dxgi_adapter_desc1_.Description)};
+}
+
+std::vector<CComPtr<IDXGIOutput1>> Device::EnumerateDXGIOutputs() {
+  std::vector<CComPtr<IDXGIOutput1>> dxgi_outputs;
+  CComPtr<IDXGIOutput> dxgi_output{nullptr};
+  for (uint32_t i = 0; dxgi_adapter1_->EnumOutputs(i, &dxgi_output) != DXGI_ERROR_NOT_FOUND; ++i) {
+    CComQIPtr<IDXGIOutput1> dxgi_output1{dxgi_output};
+    if (!dxgi_output1) {
+      throw std::runtime_error{"TODO"};  // TODO
+    }
+    dxgi_output.Release();
+    dxgi_outputs.push_back(dxgi_output1);
+  }
+  return dxgi_outputs;
 }
 
 }  // namespace d3d11_capture
