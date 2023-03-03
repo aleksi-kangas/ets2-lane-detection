@@ -18,6 +18,8 @@ class Output {
 
   [[nodiscard]] std::string DeviceName() const;
   [[nodiscard]] std::pair<int32_t, int32_t> Resolution() const;
+  [[nodiscard]] int32_t Height() const;
+  [[nodiscard]] int32_t Width() const;
 
  private:
   CComPtr<IDXGIOutput1> dxgi_output_{nullptr};

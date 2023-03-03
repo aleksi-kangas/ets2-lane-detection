@@ -17,4 +17,12 @@ std::pair<int32_t, int32_t> Output::Resolution() const {
           dxgi_output_desc_.DesktopCoordinates.bottom - dxgi_output_desc_.DesktopCoordinates.top};
 }
 
+int32_t Output::Height() const {
+  return dxgi_output_desc_.DesktopCoordinates.bottom - dxgi_output_desc_.DesktopCoordinates.top;
+}
+
+int32_t Output::Width() const {
+  return dxgi_output_desc_.DesktopCoordinates.right - dxgi_output_desc_.DesktopCoordinates.left;
+}
+
 }  // namespace d3d11_capture
