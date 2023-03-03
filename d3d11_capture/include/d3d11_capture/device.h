@@ -9,6 +9,7 @@
 #include <dxgi1_2.h>
 
 #include "d3d11_capture/common.h"
+#include "d3d11_capture/output.h"
 
 namespace d3d11_capture {
 
@@ -22,8 +23,8 @@ class Device {
   [[nodiscard]] ID3D11DeviceContext* D3D11DeviceContext() const;
   [[nodiscard]] ID3D11DeviceContext* D3D11DeviceImmediateContext() const;
 
-  [[nodiscard]] uint32_t DedicatedVideoMemory() const;
-  [[nodiscard]] std::string Description() const;
+  [[nodiscard]] uint64_t DedicatedVideoMemory() const;
+  [[nodiscard]] std::wstring Description() const;
 
  private:
   CComPtr<IDXGIAdapter1> dxgi_adapter1_{nullptr};
