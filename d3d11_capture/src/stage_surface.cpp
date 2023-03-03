@@ -2,7 +2,7 @@
 
 namespace d3d11_capture {
 
-StageSurface::StageSurface(Device& device, Output& output) : output_{output}, device_{device} {
+StageSurface::StageSurface(Device& device, Output& output) : device_{device}, output_{output} {
   Rebuild();
 }
 
@@ -23,11 +23,11 @@ void StageSurface::Rebuild() {
   width_ = width;
   height_ = height;
   if (d3d11_texture2d_ == nullptr) {
-    d3d11_texture2d_desc_.Width = width_;
-    d3d11_texture2d_desc_.Height = height_;
+    d3d11_texture2d_desc_.Width = static_cast<UINT>(width_);
+    d3d11_texture2d_desc_.Height = static_cast<UINT>(height_);
     d3d11_texture2d_desc_.MipLevels = 1;
     d3d11_texture2d_desc_.ArraySize = 1;
-    d3d11_texture2d_desc_.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    d3d11_texture2d_desc_.Format = dxgi_format_;
     d3d11_texture2d_desc_.SampleDesc.Count = 1;
     d3d11_texture2d_desc_.SampleDesc.Quality = 0;
     d3d11_texture2d_desc_.Usage = D3D11_USAGE_STAGING;

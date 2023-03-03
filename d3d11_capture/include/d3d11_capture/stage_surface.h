@@ -15,6 +15,12 @@ class StageSurface {
  public:
   StageSurface(Device& device, Output& output);
 
+  StageSurface(const StageSurface&) = delete;
+  StageSurface& operator=(const StageSurface&) = delete;
+
+  StageSurface(StageSurface&&) = delete;
+  StageSurface& operator=(StageSurface&&) = delete;
+
   DXGI_MAPPED_RECT Map();
   void UnMap();
 
@@ -23,9 +29,9 @@ class StageSurface {
  private:
   Device& device_;
   Output& output_;
-  uint32_t width_{0};
-  uint32_t height_{0};
-  uint32_t dxgi_format{DXGI_FORMAT_B8G8R8A8_UNORM};
+  int32_t width_{0};
+  int32_t height_{0};
+  DXGI_FORMAT dxgi_format_{DXGI_FORMAT_B8G8R8A8_UNORM};
   D3D11_TEXTURE2D_DESC d3d11_texture2d_desc_{};
   CComPtr<ID3D11Texture2D> d3d11_texture2d_{nullptr};
 
