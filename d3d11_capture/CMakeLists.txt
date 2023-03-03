@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(OpenCV REQUIRED)
 
 add_library(${PROJECT_NAME}
+        include/d3d11_capture/common.h
         include/d3d11_capture/device.h          src/device.cpp
         include/d3d11_capture/duplicator.h      src/duplicator.cpp
         include/d3d11_capture/output.h          src/output.cpp
