@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME}
         include/d3d11_capture/common.h
         include/d3d11_capture/device.h          src/device.cpp
         include/d3d11_capture/duplicator.h      src/duplicator.cpp
+        include/d3d11_capture/event.h           src/event.cpp
         include/d3d11_capture/output.h          src/output.cpp
         include/d3d11_capture/stage_surface.h   src/stage_surface.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC include ${OpenCV_INCLUDE_DIRS})
