@@ -113,7 +113,9 @@ Ort::Value LaneDetector::Inference(const Ort::Value& input) {
   Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
   auto output = Ort::Value::CreateTensor<float>(memory_info, output_tensor_data_.data(), output_tensor_data_.size(),
                                                 output_dimensions_.data(), output_dimensions_.size());
-  session_.Run(Ort::RunOptions{nullptr}, &input_name_, &input, 1, &output_name_, &output, 1);
+  const char* input_name = input_name_.c_str();
+  const char* output_name = output_name_.c_str();
+  session_.Run(Ort::RunOptions{nullptr}, &input_name, &input, 1, &output_name, &output, 1);
   return output;
 }
 
@@ -172,7 +174,7 @@ void LaneDetector::InitModelInfo() {
   assert(session_.GetOutputCount() == 1);
 
   const auto allocated_input_name = session_.GetInputNameAllocated(0, allocator_);
-  input_name_ = _strdup(allocated_input_name.get());
+  input_name_ = std::string{allocated_input_name.get()};
 
   Ort::TypeInfo input_type_info = session_.GetInputTypeInfo(0);
   assert(input_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
@@ -180,7 +182,7 @@ void LaneDetector::InitModelInfo() {
   input_tensor_size_ = std::accumulate(input_dimensions_.begin(), input_dimensions_.end(), 1, std::multiplies<>());
 
   const auto allocated_output_name = session_.GetOutputNameAllocated(0, allocator_);
-  output_name_ = _strdup(allocated_output_name.get());
+  output_name_ = std::string{allocated_output_name.get()};
   Ort::TypeInfo output_type_info = session_.GetOutputTypeInfo(0);
   assert(output_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
   output_dimensions_ = output_type_info.GetTensorTypeAndShapeInfo().GetShape();
