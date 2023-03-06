@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cassert>
-#include <cstring>
 #include <filesystem>
 #include <numeric>
 #include <stdexcept>
@@ -75,6 +74,10 @@ LaneDetector::LaneDetector(ModelType model_type) {
     }
   }();
 
+  if (!std::filesystem::exists(model_path)) {
+    throw std::invalid_argument{"Model file not found"};
+  }
+
   config_ = [=]() -> std::unique_ptr<IConfig> {
     switch (model_type) {
       case ModelType::kCULane:
@@ -95,7 +98,10 @@ Ort::Value LaneDetector::Preprocess(const cv::Mat& image) {
   cv::resize(image, input_image, cv::Size{kInputWidth, kInputHeight});
   cv::cvtColor(input_image, input_image, cv::COLOR_BGR2RGB);
   input_image.convertTo(input_image, CV_32FC3, 1.0 / 255.0);
-  // TODO Normalization
+
+  cv::Scalar mean{0.485, 0.456, 0.406};
+  cv::Scalar std{0.229, 0.224, 0.225};
+  input_image = (input_image - mean) / std;
 
   cv::Mat preprocessed_image;
   cv::dnn::blobFromImage(input_image, preprocessed_image);
@@ -157,13 +163,26 @@ void LaneDetector::InitSession(const std::filesystem::path& model_path) {
   Ort::SessionOptions session_options{};
   session_options.SetIntraOpNumThreads(1);
 
-  // TensorRT
-  OrtTensorRTProviderOptions tensorrt_options{};
-  tensorrt_options.device_id = 0;
-  session_options.AppendExecutionProvider_TensorRT(tensorrt_options);
+  try {  // TensorRT
+    OrtTensorRTProviderOptions tensorrt_options{};
+    tensorrt_options.device_id = 0;
+    // "TensorRT option trt_max_partition_iterations must be a positive integer value. Set it to 1000"
+    tensorrt_options.trt_max_partition_iterations = 1000;
+    // "TensorRT option trt_min_subgraph_size must be a positive integer value. Set it to 1"
+    tensorrt_options.trt_min_subgraph_size = 1;
+    // "TensorRT option trt_max_workspace_size must be a positive integer value. Set it to 1073741824 (1GB)"
+    tensorrt_options.trt_max_workspace_size = 1073741824;
+    session_options.AppendExecutionProvider_TensorRT(tensorrt_options);
+  } catch (const Ort::Exception& e) {
+    std::cerr << "TensorRT is not available: " << e.what() << std::endl;
+  }
 
-  session_ = Ort::Session(env_, model_path.c_str(), session_options);
-  assert(session_ != nullptr);
+  try {
+    session_ = Ort::Session(env_, model_path.c_str(), session_options);
+  } catch (const Ort::Exception& e) {
+    std::cerr << "Failed to create OnnxRuntime session: " << e.what() << std::endl;
+    throw;
+  }
 
   assert(session_.GetInputCount() == 1);
   assert(session_.GetOutputCount() == 1);
