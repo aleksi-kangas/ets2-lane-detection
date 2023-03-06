@@ -4,10 +4,11 @@
 #include "ufld/v1.h"
 
 int main() {
-  auto& d3d11_camera_factory = d3d11_capture::Factory::Instance();
+  d3d11_capture::Factory d3d11_camera_factory{};
+  auto& camera = d3d11_camera_factory.Create();
+
   ufld::v1::LaneDetector lane_detector{ufld::v1::ModelType::kCULane};
 
-  auto& camera = d3d11_camera_factory.Create();
   camera.StartCapture();
   while (true) {
     std::optional<cv::Mat> frame = camera.GetLatestFrame();
