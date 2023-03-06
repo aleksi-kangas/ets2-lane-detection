@@ -12,7 +12,14 @@ Device::Device(CComPtr<IDXGIAdapter1> dxgi_adapter1) : dxgi_adapter1_{std::move(
   constexpr D3D_DRIVER_TYPE kDriverType = D3D_DRIVER_TYPE_UNKNOWN;
   constexpr std::array<D3D_FEATURE_LEVEL, 3> feature_levels = {
       {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1}};
-  const HRESULT hr = D3D11CreateDevice(dxgi_adapter1_, kDriverType, nullptr, 0, feature_levels.data(),
+
+#ifdef _DEBUG
+  constexpr UINT kCreateDeviceFlags = D3D11_CREATE_DEVICE_DEBUG;
+#else
+  constexpr UINT kCreateDeviceFlags = 0;
+#endif
+
+  const HRESULT hr = D3D11CreateDevice(dxgi_adapter1_, kDriverType, nullptr, kCreateDeviceFlags, feature_levels.data(),
                                        static_cast<UINT>(feature_levels.size()), D3D11_SDK_VERSION, &d3d11_device_,
                                        &d3d_feature_level_, &d3d11_device_context_);
   if (FAILED(hr)) {
