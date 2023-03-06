@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 #include <filesystem>
+#include <iostream>
 #include <numeric>
 #include <stdexcept>
 
@@ -75,6 +76,7 @@ LaneDetector::LaneDetector(ModelType model_type) {
   }();
 
   if (!std::filesystem::exists(model_path)) {
+    std::cerr << "Model file not found: " << model_path << std::endl;
     throw std::invalid_argument{"Model file not found"};
   }
 
