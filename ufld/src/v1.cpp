@@ -67,9 +67,9 @@ LaneDetector::LaneDetector(ModelType model_type) {
     std::filesystem::path base_path{"models"};
     switch (model_type) {
       case ModelType::kCULane:
-        return base_path.append("ufld_v1_culane_288x800.onnx");
+        return base_path.append(kCULaneModelFile);
       case ModelType::kTuSimple:
-        return base_path.append("TODO");  // TODO
+        return base_path.append(kTuSimpleModelFile);
       default:
         throw std::invalid_argument{"Invalid model type"};
     }

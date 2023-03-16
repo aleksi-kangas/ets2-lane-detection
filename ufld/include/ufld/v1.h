@@ -54,6 +54,8 @@ class LaneDetector final : public ILaneDetector {
   static constexpr int32_t kInputWidth = 800;
   static constexpr int32_t kInputHeight = 288;
   static constexpr int32_t kLaneCount = 4;
+  static constexpr auto kCULaneModelFile = "ufld_v1_culane_288x800.onnx";
+  static constexpr auto kTuSimpleModelFile = "ufld_v1_tusimple_288x800.onnx";
 
   std::unique_ptr<const IConfig> config_{nullptr};
 
