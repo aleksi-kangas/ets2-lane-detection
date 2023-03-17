@@ -174,12 +174,17 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
 
       const float kGridCellWidth =
           (kInputWidth) / static_cast<float>(config_->griding_num);
-      const auto x = static_cast<float>(predicted_cells[index]) *
-                     kGridCellWidth * static_cast<float>(image_width) /
-                     static_cast<float>(kInputWidth);
-      const auto y = static_cast<float>(config_->row_anchors[class_index]) *
-                     static_cast<float>(image_height) /
-                     static_cast<float>(kInputHeight);
+      const float kWidthScale =
+          static_cast<float>(image_width) / static_cast<float>(kInputWidth);
+      const float kHeightScale =
+          static_cast<float>(image_height) / static_cast<float>(kInputHeight);
+
+      const auto x =
+          (static_cast<float>(predicted_cells[index]) * kGridCellWidth +
+           kGridCellWidth * 0.5) *
+          kWidthScale;
+      const auto y =
+          static_cast<float>(config_->row_anchors[class_index]) * kHeightScale;
       lane.emplace_back(x, y);
     }
     lanes.push_back(lane);
