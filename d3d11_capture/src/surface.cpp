@@ -1,29 +1,29 @@
-#include "d3d11_capture/stage_surface.h"
+#include "d3d11_capture/surface.h"
 
 namespace d3d11_capture {
 
-StageSurface::StageSurface(Device& device, Output& output)
+Surface::Surface(Device& device, Output& output)
     : device_{device}, output_{output} {
   Rebuild();
 }
 
-DXGI_MAPPED_RECT StageSurface::Map() {
+DXGI_MAPPED_RECT Surface::Map() {
   DXGI_MAPPED_RECT dxgi_mapped_rect{};
   CComQIPtr<IDXGISurface> dxgi_surface{d3d11_texture2d_};
   dxgi_surface->Map(&dxgi_mapped_rect, DXGI_MAP_READ);
   return dxgi_mapped_rect;
 }
 
-void StageSurface::UnMap() {
+void Surface::UnMap() {
   CComQIPtr<IDXGISurface> dxgi_surface{d3d11_texture2d_};
   dxgi_surface->Unmap();
 }
 
-ID3D11Texture2D* StageSurface::D3D11Texture2D() const {
+ID3D11Texture2D* Surface::D3D11Texture2D() const {
   return d3d11_texture2d_;
 }
 
-void StageSurface::Rebuild() {
+void Surface::Rebuild() {
   const auto [width, height] = output_.Resolution();
   width_ = width;
   height_ = height;

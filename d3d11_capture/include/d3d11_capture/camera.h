@@ -15,7 +15,7 @@
 #include "d3d11_capture/frame_buffer.h"
 #include "d3d11_capture/output.h"
 #include "d3d11_capture/region.h"
-#include "d3d11_capture/stage_surface.h"
+#include "d3d11_capture/surface.h"
 
 namespace d3d11_capture {
 
@@ -41,7 +41,7 @@ class Camera {
   Device& device_;
   Output& output_;
   Duplicator duplicator_;
-  StageSurface stage_surface_;
+  Surface surface_;
 
   Region region_;
 

@@ -11,15 +11,15 @@
 
 namespace d3d11_capture {
 
-class StageSurface {
+class Surface {
  public:
-  StageSurface(Device& device, Output& output);
+  Surface(Device& device, Output& output);
 
-  StageSurface(const StageSurface&) = delete;
-  StageSurface& operator=(const StageSurface&) = delete;
+  Surface(const Surface&) = delete;
+  Surface& operator=(const Surface&) = delete;
 
-  StageSurface(StageSurface&&) = delete;
-  StageSurface& operator=(StageSurface&&) = delete;
+  Surface(Surface&&) = delete;
+  Surface& operator=(Surface&&) = delete;
 
   DXGI_MAPPED_RECT Map();
   void UnMap();

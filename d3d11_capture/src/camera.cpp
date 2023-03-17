@@ -8,7 +8,7 @@ Camera::Camera(Device& device, Output& output, std::optional<Region> region,
                int32_t frame_buffer_capacity)
     : device_{device},
       output_{output},
-      stage_surface_{device, output},
+      surface_{device, output},
       duplicator_{device, output},
       region_{region.value_or(Region{0, 0, output_.Width(), output_.Height()})},
       frame_buffer_{frame_buffer_capacity} {}
@@ -59,13 +59,13 @@ std::optional<cv::Mat> Camera::Grab(const Region& region) {
     return std::nullopt;
   }
   device_.D3D11DeviceImmediateContext()->CopyResource(
-      stage_surface_.D3D11Texture2D(), duplicator_.D3D11Texture2D());
+      surface_.D3D11Texture2D(), duplicator_.D3D11Texture2D());
   duplicator_.ReleaseFrame();
-  const auto rect = stage_surface_.Map();
+  const auto rect = surface_.Map();
   const auto [width, height] = output_.Resolution();
   cv::Mat frame{height, width, CV_8UC4, rect.pBits,
                 static_cast<size_t>(rect.Pitch)};
-  stage_surface_.UnMap();
+  surface_.UnMap();
 
   auto Crop = [](cv::Mat& src, Region region) {
     cv::Mat cropped_ref(
