@@ -20,7 +20,9 @@ class Duplicator {
 
   void ReleaseFrame();
 
-  [[nodiscard]] ID3D11Texture2D* D3D11Texture2D() const { return d3d11_texture2d_; }
+  [[nodiscard]] ID3D11Texture2D* D3D11Texture2D() const {
+    return d3d11_texture2d_;
+  }
 
  private:
   CComPtr<IDXGIOutputDuplication> dxgi_output_duplication_{nullptr};

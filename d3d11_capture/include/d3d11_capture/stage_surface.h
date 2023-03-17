@@ -24,7 +24,7 @@ class StageSurface {
   DXGI_MAPPED_RECT Map();
   void UnMap();
 
-  [[nodiscard]] ID3D11Texture2D* D3D11Texture2D() const { return d3d11_texture2d_; }
+  [[nodiscard]] ID3D11Texture2D* D3D11Texture2D() const;
 
  private:
   Device& device_;

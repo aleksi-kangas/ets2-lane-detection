@@ -4,7 +4,8 @@
 
 namespace d3d11_capture {
 
-Camera::Camera(Device& device, Output& output, std::optional<Region> region, int32_t frame_buffer_capacity)
+Camera::Camera(Device& device, Output& output, std::optional<Region> region,
+               int32_t frame_buffer_capacity)
     : device_{device},
       output_{output},
       stage_surface_{device, output},
@@ -30,7 +31,8 @@ cv::Mat Camera::GetLatestFrame() {
   frame_available_.Wait();
   std::lock_guard<std::mutex> lock{mutex_};
   const auto frame = frame_buffer_.GetNewestFrame();
-  assert(frame.has_value());  // This should always pass, as we wait for a frame to be available
+  // This should always pass, as we wait for a frame to be available
+  assert(frame.has_value());
   frame_available_.Clear();
   return frame.value_or(cv::Mat{output_.Height(), output_.Width(), CV_8UC4});
 }
@@ -56,22 +58,26 @@ std::optional<cv::Mat> Camera::Grab(const Region& region) {
   if (!is_frame_updated) {
     return std::nullopt;
   }
-  device_.D3D11DeviceImmediateContext()->CopyResource(stage_surface_.D3D11Texture2D(), duplicator_.D3D11Texture2D());
+  device_.D3D11DeviceImmediateContext()->CopyResource(
+      stage_surface_.D3D11Texture2D(), duplicator_.D3D11Texture2D());
   duplicator_.ReleaseFrame();
   const auto rect = stage_surface_.Map();
   const auto [width, height] = output_.Resolution();
-  cv::Mat frame{height, width, CV_8UC4, rect.pBits, static_cast<size_t>(rect.Pitch)};
+  cv::Mat frame{height, width, CV_8UC4, rect.pBits,
+                static_cast<size_t>(rect.Pitch)};
   stage_surface_.UnMap();
 
   auto Crop = [](cv::Mat& src, Region region) {
-    cv::Mat cropped_ref(src, cv::Rect{region.left, region.top, region.right, region.bottom});
+    cv::Mat cropped_ref(
+        src, cv::Rect{region.left, region.top, region.right, region.bottom});
     cv::Mat cropped;
     cropped_ref.copyTo(cropped);
     return cropped;
   };
 
   // Crop if the region differs from output resolution
-  if (region.left != 0 || region.top != 0 || region.right != width || region.bottom != height) {
+  if (region.left != 0 || region.top != 0 || region.right != width ||
+      region.bottom != height) {
     return Crop(frame, region);
   }
   return frame;

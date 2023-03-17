@@ -23,7 +23,9 @@ Factory::Factory() {
   std::call_once(once_flag_, Initialize);
 }
 
-Camera& Factory::Create(int32_t device_index, std::optional<int32_t> output_index, std::optional<Region> region) {
+Camera& Factory::Create(int32_t device_index,
+                        std::optional<int32_t> output_index,
+                        std::optional<Region> region) {
   std::lock_guard<std::mutex> lock{mutex_};
   Device& device = devices_[device_index];
   if (!output_index.has_value()) {

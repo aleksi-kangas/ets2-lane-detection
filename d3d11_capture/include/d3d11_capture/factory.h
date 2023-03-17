@@ -19,7 +19,8 @@ class Factory {
   Factory();
   ~Factory() = default;
 
-  Camera& Create(int32_t device_index = 0, std::optional<int32_t> output_index = std::nullopt,
+  Camera& Create(int32_t device_index = 0,
+                 std::optional<int32_t> output_index = std::nullopt,
                  std::optional<Region> region = std::nullopt);
 
  private:

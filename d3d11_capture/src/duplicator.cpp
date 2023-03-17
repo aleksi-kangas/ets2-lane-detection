@@ -3,13 +3,15 @@
 namespace d3d11_capture {
 
 Duplicator::Duplicator(Device& device, Output& output) {
-  output.DXGIOutput1()->DuplicateOutput(device.D3D11Device(), &dxgi_output_duplication_);
+  output.DXGIOutput1()->DuplicateOutput(device.D3D11Device(),
+                                        &dxgi_output_duplication_);
 }
 
 bool Duplicator::UpdateFrame() {
   DXGI_OUTDUPL_FRAME_INFO frame_info;
   CComPtr<IDXGIResource> dxgi_resource{nullptr};
-  HRESULT hr = dxgi_output_duplication_->AcquireNextFrame(0, &frame_info, &dxgi_resource);
+  HRESULT hr = dxgi_output_duplication_->AcquireNextFrame(0, &frame_info,
+                                                          &dxgi_resource);
   if (hr == DXGI_ERROR_WAIT_TIMEOUT || hr == DXGI_ERROR_ACCESS_LOST) {
     return false;
   }

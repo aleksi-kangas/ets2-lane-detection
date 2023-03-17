@@ -21,7 +21,8 @@ namespace d3d11_capture {
 
 class Camera {
  public:
-  Camera(Device& device, Output& output, std::optional<Region> region = std::nullopt,
+  Camera(Device& device, Output& output,
+         std::optional<Region> region = std::nullopt,
          int32_t frame_buffer_capacity = 64);
 
   Camera(const Camera&) = delete;
