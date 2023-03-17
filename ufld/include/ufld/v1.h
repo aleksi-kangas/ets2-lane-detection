@@ -13,6 +13,7 @@
 namespace ufld::v1 {
 
 enum class ModelType { kCULane, kTuSimple };
+ModelType ModelTypeFromString(const std::string& model_type);
 
 struct IConfig {
  public:

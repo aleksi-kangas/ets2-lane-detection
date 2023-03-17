@@ -64,6 +64,19 @@ std::vector<int32_t> ArgMax_0(const std::vector<float>& input,
 
 namespace ufld::v1 {
 
+ModelType ModelTypeFromString(const std::string& model_type) {
+  std::string model_type_lower = model_type;
+  std::transform(model_type_lower.begin(), model_type_lower.end(),
+                 model_type_lower.begin(), ::tolower);
+  if (model_type_lower == "culane") {
+    return ModelType::kCULane;
+  } else if (model_type_lower == "tusimple") {
+    return ModelType::kTuSimple;
+  } else {
+    throw std::invalid_argument{"Invalid model type"};
+  }
+}
+
 LaneDetector::LaneDetector(ModelType model_type) {
   std::filesystem::path model_path = [=]() {
     std::filesystem::path base_path{"models"};

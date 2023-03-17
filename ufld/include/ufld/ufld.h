@@ -10,6 +10,8 @@
 
 namespace ufld {
 
+enum class Version { kV1 = 1 };
+
 using Lane = std::vector<cv::Point>;
 
 void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image);
@@ -52,8 +54,9 @@ class ILaneDetector {
 
   [[nodiscard]] virtual Ort::Value Inference(const Ort::Value& input) = 0;
 
-  [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(const Ort::Value& predictions, int32_t image_width,
-                                                             int32_t image_height) = 0;
+  [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(
+      const Ort::Value& predictions, int32_t image_width,
+      int32_t image_height) = 0;
 };
 
 }  // namespace ufld
