@@ -3,12 +3,9 @@
 #include <string>
 #include <utility>
 
-#include <atlbase.h>
-#include <dxgi1_2.h>
+#include "dx11/common.h"
 
-#include "d3d11_capture/common.h"
-
-namespace d3d11_capture {
+namespace dx11 {
 
 class Output {
  public:
@@ -16,7 +13,7 @@ class Output {
 
   [[nodiscard]] IDXGIOutput1* DXGIOutput1() const { return dxgi_output_; }
 
-  [[nodiscard]] std::string DeviceName() const;
+  [[nodiscard]] std::wstring DeviceName() const;
   [[nodiscard]] std::pair<int32_t, int32_t> Resolution() const;
   [[nodiscard]] int32_t Height() const;
   [[nodiscard]] int32_t Width() const;
@@ -26,4 +23,4 @@ class Output {
   DXGI_OUTPUT_DESC dxgi_output_desc_{};
 };
 
-}  // namespace d3d11_capture
+}  // namespace dx11

@@ -4,14 +4,10 @@
 #include <string>
 #include <vector>
 
-#include <atlbase.h>
-#include <d3d11.h>
-#include <dxgi1_2.h>
+#include "dx11/common.h"
+#include "dx11/output.h"
 
-#include "d3d11_capture/common.h"
-#include "d3d11_capture/output.h"
-
-namespace d3d11_capture {
+namespace dx11 {
 
 class Device {
  public:
@@ -40,4 +36,4 @@ class Device {
   [[nodiscard]] std::vector<CComPtr<IDXGIOutput1>> EnumerateDXGIOutputs();
 };
 
-}  // namespace d3d11_capture
+}  // namespace dx11

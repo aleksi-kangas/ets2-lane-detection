@@ -1,6 +1,6 @@
-#include "d3d11_capture/duplicator.h"
+#include "dx11/duplicator.h"
 
-namespace d3d11_capture {
+namespace dx11 {
 
 Duplicator::Duplicator(Device& device, Output& output) {
   output.DXGIOutput1()->DuplicateOutput(device.D3D11Device(),
@@ -30,4 +30,4 @@ void Duplicator::ReleaseFrame() {
   dxgi_output_duplication_->ReleaseFrame();
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

@@ -1,10 +1,10 @@
-#include "d3d11_capture/device.h"
+#include "dx11/device.h"
 
 #include <array>
 #include <stdexcept>
 #include <utility>
 
-namespace d3d11_capture {
+namespace dx11 {
 
 Device::Device(CComPtr<IDXGIAdapter1> dxgi_adapter1)
     : dxgi_adapter1_{std::move(dxgi_adapter1)} {
@@ -81,4 +81,4 @@ std::vector<CComPtr<IDXGIOutput1>> Device::EnumerateDXGIOutputs() {
   return dxgi_outputs;
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

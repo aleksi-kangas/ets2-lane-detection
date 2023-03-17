@@ -1,6 +1,6 @@
-#include "d3d11_capture/event.h"
+#include "dx11/event.h"
 
-namespace d3d11_capture {
+namespace dx11 {
 
 void Event::Clear() {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -23,4 +23,4 @@ void Event::Wait() {
   trigger_.wait(lock, [this]() { return is_set_; });
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

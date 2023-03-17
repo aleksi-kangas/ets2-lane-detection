@@ -2,15 +2,11 @@
 
 #include <stdexcept>
 
-#include <atlbase.h>
-#include <d3d11.h>
-#include <dxgi1_2.h>
+#include "dx11/common.h"
+#include "dx11/device.h"
+#include "dx11/output.h"
 
-#include "d3d11_capture/common.h"
-#include "d3d11_capture/device.h"
-#include "d3d11_capture/output.h"
-
-namespace d3d11_capture {
+namespace dx11 {
 
 class Duplicator {
  public:
@@ -29,4 +25,4 @@ class Duplicator {
   CComQIPtr<ID3D11Texture2D> d3d11_texture2d_{nullptr};
 };
 
-}  // namespace d3d11_capture
+}  // namespace dx11

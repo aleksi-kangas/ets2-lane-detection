@@ -1,15 +1,15 @@
-#include "d3d11_capture/camera.h"
+#include "dx11/camera.h"
 
 #include <cassert>
 
-namespace d3d11_capture {
+namespace dx11 {
 
 Camera::Camera(Device& device, Output& output, std::optional<Region> region,
-               int32_t frame_buffer_capacity)
+               uint32_t frame_buffer_capacity)
     : device_{device},
       output_{output},
-      surface_{device, output},
       duplicator_{device, output},
+      surface_{device, output},
       region_{region.value_or(Region{0, 0, output_.Width(), output_.Height()})},
       frame_buffer_{frame_buffer_capacity} {}
 
@@ -83,4 +83,4 @@ std::optional<cv::Mat> Camera::Grab(const Region& region) {
   return frame;
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

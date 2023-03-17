@@ -1,8 +1,8 @@
-#include "d3d11_capture/frame_buffer.h"
+#include "dx11/frame_buffer.h"
 
-namespace d3d11_capture {
+namespace dx11 {
 
-FrameBuffer::FrameBuffer(int32_t capacity) : capacity_{capacity} {}
+FrameBuffer::FrameBuffer(uint32_t capacity) : capacity_{capacity} {}
 
 void FrameBuffer::AddFrame(cv::Mat frame) {
   if (frames_.size() >= capacity_) {
@@ -18,4 +18,4 @@ void FrameBuffer::AddFrame(cv::Mat frame) {
   return frames_.front();
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

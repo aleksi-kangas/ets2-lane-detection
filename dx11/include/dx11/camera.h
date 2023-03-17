@@ -8,22 +8,22 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "d3d11_capture/common.h"
-#include "d3d11_capture/device.h"
-#include "d3d11_capture/duplicator.h"
-#include "d3d11_capture/event.h"
-#include "d3d11_capture/frame_buffer.h"
-#include "d3d11_capture/output.h"
-#include "d3d11_capture/region.h"
-#include "d3d11_capture/surface.h"
+#include "dx11/common.h"
+#include "dx11/device.h"
+#include "dx11/duplicator.h"
+#include "dx11/event.h"
+#include "dx11/frame_buffer.h"
+#include "dx11/output.h"
+#include "dx11/region.h"
+#include "dx11/surface.h"
 
-namespace d3d11_capture {
+namespace dx11 {
 
 class Camera {
  public:
   Camera(Device& device, Output& output,
          std::optional<Region> region = std::nullopt,
-         int32_t frame_buffer_capacity = 64);
+         uint32_t frame_buffer_capacity = 64);
 
   Camera(const Camera&) = delete;
   Camera& operator=(const Camera&) = delete;
@@ -57,4 +57,4 @@ class Camera {
   std::optional<cv::Mat> Grab(const Region& region);
 };
 
-}  // namespace d3d11_capture
+}  // namespace dx11

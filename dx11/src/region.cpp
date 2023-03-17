@@ -1,8 +1,8 @@
-#include "d3d11_capture/region.h"
+#include "dx11/region.h"
 
 #include <stdexcept>
 
-namespace d3d11_capture {
+namespace dx11 {
 
 Region::Region(int32_t left, int32_t top, int32_t right, int32_t bottom)
     : left{left}, top{top}, right{right}, bottom{bottom} {
@@ -11,4 +11,4 @@ Region::Region(int32_t left, int32_t top, int32_t right, int32_t bottom)
   }
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

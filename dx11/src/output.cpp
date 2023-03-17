@@ -1,15 +1,15 @@
-#include "d3d11_capture/output.h"
+#include "dx11/output.h"
 
 #include <utility>
 
-namespace d3d11_capture {
+namespace dx11 {
 
 Output::Output(CComPtr<IDXGIOutput1> dxgi_output)
     : dxgi_output_{std::move(dxgi_output)} {
   dxgi_output_->GetDesc(&dxgi_output_desc_);
 }
 
-std::string Output::DeviceName() const {
+std::wstring Output::DeviceName() const {
   return {dxgi_output_desc_.DeviceName,
           dxgi_output_desc_.DeviceName + wcslen(dxgi_output_desc_.DeviceName)};
 }
@@ -31,4 +31,4 @@ int32_t Output::Width() const {
          dxgi_output_desc_.DesktopCoordinates.left;
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

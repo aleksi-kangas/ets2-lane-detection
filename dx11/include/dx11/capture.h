@@ -5,15 +5,12 @@
 #include <optional>
 #include <vector>
 
-#include <atlbase.h>
-#include <dxgi1_2.h>
+#include "dx11/camera.h"
+#include "dx11/common.h"
+#include "dx11/device.h"
+#include "dx11/region.h"
 
-#include "d3d11_capture/camera.h"
-#include "d3d11_capture/common.h"
-#include "d3d11_capture/device.h"
-#include "d3d11_capture/region.h"
-
-namespace d3d11_capture {
+namespace dx11 {
 
 class Capture {
  public:
@@ -32,4 +29,4 @@ class Capture {
   static std::unique_ptr<Camera> camera_;
 };
 
-}  // namespace d3d11_capture
+}  // namespace dx11

@@ -1,6 +1,6 @@
-#include "d3d11_capture/surface.h"
+#include "dx11/surface.h"
 
-namespace d3d11_capture {
+namespace dx11 {
 
 Surface::Surface(Device& device, Output& output)
     : device_{device}, output_{output} {
@@ -44,4 +44,4 @@ void Surface::Rebuild() {
   }
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

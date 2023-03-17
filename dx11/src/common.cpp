@@ -1,8 +1,8 @@
-#include "d3d11_capture/common.h"
+#include "dx11/common.h"
 
 #include <stdexcept>
 
-namespace d3d11_capture {
+namespace dx11 {
 
 std::vector<CComPtr<IDXGIAdapter1>> EnumerateDXGIAdapters() {
 
@@ -23,4 +23,4 @@ std::vector<CComPtr<IDXGIAdapter1>> EnumerateDXGIAdapters() {
   return dxgi_adapters;
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11

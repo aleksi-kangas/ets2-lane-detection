@@ -1,10 +1,10 @@
 #include <opencv2/opencv.hpp>
 
-#include "d3d11_capture/capture.h"
+#include "dx11/capture.h"
 #include "ufld/v1.h"
 
 int main() {
-  d3d11_capture::Capture capture{};
+  dx11::Capture capture{};
   constexpr int32_t kDeviceIndex = 0;
   constexpr int32_t kOutputIndex = 0;
   const auto camera = capture.Start(kDeviceIndex, kOutputIndex);

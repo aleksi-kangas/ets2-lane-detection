@@ -3,9 +3,9 @@
 #include <condition_variable>
 #include <mutex>
 
-#include "d3d11_capture/common.h"
+#include "dx11/common.h"
 
-namespace d3d11_capture {
+namespace dx11 {
 
 class Event {
  public:
@@ -31,4 +31,4 @@ class Event {
   bool is_set_{false};
 };
 
-}  // namespace d3d11_capture
+}  // namespace dx11

@@ -2,14 +2,11 @@
 
 #include <cstdint>
 
-#include <d3d11.h>
+#include "dx11/common.h"
+#include "dx11/device.h"
+#include "dx11/output.h"
 
-#include "d3d11_capture/device.h"
-#include "d3d11_capture/output.h"
-
-#include "d3d11_capture/common.h"
-
-namespace d3d11_capture {
+namespace dx11 {
 
 class Surface {
  public:
@@ -38,4 +35,4 @@ class Surface {
   void Rebuild();
 };
 
-}  // namespace d3d11_capture
+}  // namespace dx11

@@ -1,8 +1,8 @@
-#include "d3d11_capture/capture.h"
+#include "dx11/capture.h"
 
 #include <cassert>
 
-namespace d3d11_capture {
+namespace dx11 {
 
 std::mutex Capture::mutex_{};
 std::once_flag Capture::once_flag_{};
@@ -76,4 +76,4 @@ void Capture::Stop() {
   camera_ = nullptr;
 }
 
-}  // namespace d3d11_capture
+}  // namespace dx11
