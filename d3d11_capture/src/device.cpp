@@ -51,7 +51,7 @@ int32_t Device::DXGIOutputCount() const {
   return static_cast<int32_t>(outputs_.size());
 }
 
-Output& Device::DXGIOutput(int32_t index) {
+Output& Device::DXGIOutput(uint32_t index) {
   return outputs_[index];
 }
 

@@ -1,36 +1,35 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
 #include <mutex>
+#include <optional>
 #include <vector>
 
+#include <atlbase.h>
 #include <dxgi1_2.h>
 
 #include "d3d11_capture/camera.h"
 #include "d3d11_capture/common.h"
 #include "d3d11_capture/device.h"
-#include "d3d11_capture/output.h"
+#include "d3d11_capture/region.h"
 
 namespace d3d11_capture {
 
-class Factory {
+class Capture {
  public:
-  Factory();
-  ~Factory() = default;
+  Capture();
+  ~Capture();
 
-  Camera& Create(int32_t device_index = 0,
-                 std::optional<int32_t> output_index = std::nullopt,
-                 std::optional<Region> region = std::nullopt);
+  Camera* Start(uint32_t device_index, uint32_t output_index,
+                std::optional<Region> region = std::nullopt);
+  void Stop();
 
  private:
   static std::mutex mutex_;
   static std::once_flag once_flag_;
   static std::vector<CComPtr<IDXGIAdapter1>> dxgi_adapters_;
   static std::vector<Device> devices_;
-
-  using CameraId = std::pair<int32_t, int32_t>;  // (device_index, output_index)
-  static std::map<CameraId, Camera> cameras_;
+  static std::unique_ptr<Camera> camera_;
 };
 
 }  // namespace d3d11_capture

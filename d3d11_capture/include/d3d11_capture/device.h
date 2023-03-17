@@ -22,7 +22,7 @@ class Device {
   [[nodiscard]] ID3D11DeviceContext* D3D11DeviceImmediateContext() const;
 
   [[nodiscard]] int32_t DXGIOutputCount() const;
-  [[nodiscard]] Output& DXGIOutput(int32_t index);
+  [[nodiscard]] Output& DXGIOutput(uint32_t index);
 
   [[nodiscard]] uint64_t DedicatedVideoMemory() const;
   [[nodiscard]] std::wstring Description() const;

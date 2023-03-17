@@ -11,11 +11,11 @@ find_package(OpenCV REQUIRED)
 
 add_library(${PROJECT_NAME}
         include/d3d11_capture/camera.h          src/camera.cpp
+        include/d3d11_capture/capture.h         src/capture.cpp
         include/d3d11_capture/common.h          src/common.cpp
         include/d3d11_capture/device.h          src/device.cpp
         include/d3d11_capture/duplicator.h      src/duplicator.cpp
         include/d3d11_capture/event.h           src/event.cpp
-        include/d3d11_capture/factory.h         src/factory.cpp
         include/d3d11_capture/frame_buffer.h    src/frame_buffer.cpp
         include/d3d11_capture/output.h          src/output.cpp
         include/d3d11_capture/region.h          src/region.cpp
