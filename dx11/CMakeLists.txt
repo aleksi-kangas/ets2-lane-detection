@@ -5,7 +5,10 @@
 
 cmake_minimum_required(VERSION 3.22)
 project(dx11)
-set(CMAKE_CXX_STANDARD 17)
+
+if (NOT MSVC)
+    message(FATAL_ERROR "Only MSVC is supported")
+endif ()
 
 find_package(OpenCV REQUIRED)
 
@@ -23,3 +26,4 @@ add_library(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PUBLIC include ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES})
 target_compile_options(${PROJECT_NAME} PRIVATE /Wall)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
