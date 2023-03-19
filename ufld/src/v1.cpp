@@ -5,62 +5,10 @@
 #include <filesystem>
 #include <iostream>
 #include <numeric>
+#include <span>
 #include <stdexcept>
 
-namespace {
-
-std::vector<float> Softmax_0(const std::vector<float>& input,
-                             const std::array<int32_t, 3>& dimensions) {
-  std::vector<float> softmax(input.size());
-  const auto dim1 = dimensions[0];
-  const auto dim2 = dimensions[1];
-  const auto dim3 = dimensions[2];
-
-  for (int32_t d2 = 0; d2 < dim2; ++d2) {
-    for (int32_t d3 = 0; d3 < dim3; ++d3) {
-      float sum = 0;
-      auto index = [=](auto d1) {
-        return d1 * dim2 * dim3 + d2 * dim3 + d3;
-      };
-
-      for (int32_t d1 = 0; d1 < dim1; ++d1) {
-        sum += std::exp(input[index(d1)]);
-      }
-      for (int32_t d1 = 0; d1 < dim1; ++d1) {
-        softmax[index(d1)] = std::exp(input[index(d1)]) / sum;
-      }
-    }
-  }
-  return softmax;
-}
-
-std::vector<int32_t> ArgMax_0(const std::vector<float>& input,
-                              const std::array<int32_t, 3>& dimensions) {
-  const auto dim1 = dimensions[0];
-  const auto dim2 = dimensions[1];
-  const auto dim3 = dimensions[2];
-  std::vector<int32_t> argmax(dim2 * dim3);
-  for (int32_t d2 = 0; d2 < dim2; ++d2) {
-    for (int32_t d3 = 0; d3 < dim3; ++d3) {
-      float max = input[d2 * dim3 + d3];
-      int32_t argmax_index = 0;
-      auto index = [=](auto d1) {
-        return d1 * dim2 * dim3 + d2 * dim3 + d3;
-      };
-
-      for (int32_t d1 = 1; d1 < dim1; ++d1) {
-        if (input[index(d1)] > max) {
-          max = input[index(d1)];
-          argmax_index = d1;
-        }
-      }
-      argmax[d2 * dim3 + d3] = argmax_index;
-    }
-  }
-  return argmax;
-}
-
-}  // namespace
+#include "ufld/utils.h"
 
 namespace ufld::v1 {
 
@@ -151,16 +99,25 @@ Ort::Value LaneDetector::Inference(const Ort::Value& input) {
 std::vector<Lane> LaneDetector::PredictionsToLanes(
     const Ort::Value& predictions, int32_t image_width, int32_t image_height) {
   // https://github.com/cfzd/Ultra-Fast-Lane-Detection/blob/master/demo.py
-  std::vector<float> predictions_raw(
+
+  const std::array<int32_t, 3> k3DShape{
+      {config_->griding_num, config_->cls_num_per_lane, kLaneCount}};
+
+  const auto tensor_type_and_shape_info =
+      predictions.GetTensorTypeAndShapeInfo();
+  const auto shape = tensor_type_and_shape_info.GetShape();
+  assert(shape.size() == 4);
+  assert(shape[0] == 1 && shape[1] == k3DShape[0] && shape[2] == k3DShape[1] &&
+         shape[3] == k3DShape[2]);
+
+  const std::span<const float> predictions_raw(
       predictions.GetTensorData<float>(),
-      predictions.GetTensorData<float>() +
-          predictions.GetTensorTypeAndShapeInfo().GetElementCount());
-  std::vector<float> probabilities =
-      Softmax_0(predictions_raw,
-                {config_->griding_num, config_->cls_num_per_lane, kLaneCount});
-  std::vector<int32_t> predicted_cells =
-      ArgMax_0(probabilities,
-               {config_->griding_num, config_->cls_num_per_lane, kLaneCount});
+      tensor_type_and_shape_info.GetElementCount());
+  const std::vector<float> probabilities =
+      utils::Softmax_0(predictions_raw, k3DShape);
+  const std::vector<int32_t> predicted_cells =
+      utils::ArgMax_0(std::span{probabilities}, k3DShape);
+
   std::vector<Lane> lanes;
   for (int32_t lane_index = 0; lane_index < kLaneCount; ++lane_index) {
     Lane lane;
