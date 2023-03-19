@@ -15,7 +15,8 @@ namespace ufld::v1 {
 ModelType ModelTypeFromString(const std::string& model_type) {
   std::string model_type_lower = model_type;
   std::transform(model_type_lower.begin(), model_type_lower.end(),
-                 model_type_lower.begin(), ::tolower);
+                 model_type_lower.begin(),
+                 [](auto c) { return static_cast<char>(std::tolower(c)); });
   if (model_type_lower == "culane") {
     return ModelType::kCULane;
   } else if (model_type_lower == "tusimple") {
@@ -100,7 +101,7 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
     const Ort::Value& predictions, int32_t image_width, int32_t image_height) {
   // https://github.com/cfzd/Ultra-Fast-Lane-Detection/blob/master/demo.py
 
-  const std::array<int32_t, 3> k3DShape{
+  const std::array<uint32_t, 3> k3DShape{
       {config_->griding_num, config_->cls_num_per_lane, kLaneCount}};
 
   const auto tensor_type_and_shape_info =
@@ -115,22 +116,22 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
       tensor_type_and_shape_info.GetElementCount());
   const std::vector<float> probabilities =
       utils::Softmax_0(predictions_raw, k3DShape);
-  const std::vector<int32_t> predicted_cells =
+  const std::vector<uint32_t> predicted_cells =
       utils::ArgMax_0(std::span{probabilities}, k3DShape);
 
   std::vector<Lane> lanes;
   for (int32_t lane_index = 0; lane_index < kLaneCount; ++lane_index) {
     Lane lane;
-    for (int32_t class_index = 0; class_index < config_->cls_num_per_lane;
+    for (uint32_t class_index = 0; class_index < config_->cls_num_per_lane;
          ++class_index) {
-      const int32_t kIndexOfNoLane = config_->griding_num - 1;
+      const uint32_t kIndexOfNoLane = config_->griding_num - 1;
       const auto index = class_index * kLaneCount + lane_index;
       if (predicted_cells[index] == kIndexOfNoLane) {
         continue;
       }
 
-      const float kGridCellWidth =
-          (kInputWidth) / static_cast<float>(config_->griding_num);
+      const float kGridCellWidth = static_cast<float>(kInputWidth) /
+                                   static_cast<float>(config_->griding_num);
       const float kWidthScale =
           static_cast<float>(image_width) / static_cast<float>(kInputWidth);
       const float kHeightScale =
@@ -142,7 +143,7 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
           kWidthScale;
       const auto y =
           static_cast<float>(config_->row_anchors[class_index]) * kHeightScale;
-      lane.emplace_back(x, y);
+      lane.emplace_back(static_cast<int32_t>(x), static_cast<int32_t>(y));
     }
     lanes.push_back(lane);
   }
@@ -192,7 +193,7 @@ void LaneDetector::InitModelInfo() {
   assert(input_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
   input_dimensions_ = input_type_info.GetTensorTypeAndShapeInfo().GetShape();
   input_tensor_size_ =
-      std::accumulate(input_dimensions_.begin(), input_dimensions_.end(), 1,
+      std::accumulate(input_dimensions_.begin(), input_dimensions_.end(), 1LL,
                       std::multiplies<>());
 
   const auto allocated_output_name =
@@ -202,7 +203,7 @@ void LaneDetector::InitModelInfo() {
   assert(output_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
   output_dimensions_ = output_type_info.GetTensorTypeAndShapeInfo().GetShape();
   output_tensor_size_ =
-      std::accumulate(output_dimensions_.begin(), output_dimensions_.end(), 1,
+      std::accumulate(output_dimensions_.begin(), output_dimensions_.end(), 1LL,
                       std::multiplies<>());
 }
 

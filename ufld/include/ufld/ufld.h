@@ -27,11 +27,7 @@ class ILaneDetector {
   ILaneDetector(ILaneDetector&&) = delete;
   ILaneDetector& operator=(ILaneDetector&&) = delete;
 
-  [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image) {
-    auto input = Preprocess(image);
-    auto predictions = Inference(input);
-    return PredictionsToLanes(predictions, image.cols, image.rows);
-  }
+  [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image);
 
  protected:
   Ort::Env env_{ORT_LOGGING_LEVEL_WARNING, "UFLD"};

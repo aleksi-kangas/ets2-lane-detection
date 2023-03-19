@@ -47,8 +47,8 @@ ID3D11DeviceContext* Device::D3D11DeviceImmediateContext() const {
   return d3d11_device_immediate_context_;
 }
 
-int32_t Device::DXGIOutputCount() const {
-  return static_cast<int32_t>(outputs_.size());
+uint64_t Device::DXGIOutputCount() const {
+  return outputs_.size();
 }
 
 Output& Device::DXGIOutput(uint32_t index) {

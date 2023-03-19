@@ -18,14 +18,14 @@ ModelType ModelTypeFromString(const std::string& model_type);
 struct IConfig {
  public:
   // The number of cells in a grid row, where the last cell indicates no lane found in the row
-  int32_t griding_num;
+  uint32_t griding_num;
   // Number of classes (= row anchors) per lane
-  int32_t cls_num_per_lane;
-  std::vector<int32_t> row_anchors;
+  uint32_t cls_num_per_lane;
+  std::vector<uint32_t> row_anchors;
 
  protected:
-  IConfig(int32_t griding_num, int32_t cls_num_per_lane,
-          std::vector<int32_t> row_anchors)
+  IConfig(uint32_t griding_num, uint32_t cls_num_per_lane,
+          std::vector<uint32_t> row_anchors)
       : griding_num{griding_num},
         cls_num_per_lane{cls_num_per_lane},
         row_anchors{std::move(row_anchors)} {}
@@ -62,7 +62,7 @@ class LaneDetector final : public ILaneDetector {
  private:
   static constexpr int32_t kInputWidth = 800;
   static constexpr int32_t kInputHeight = 288;
-  static constexpr int32_t kLaneCount = 4;
+  static constexpr uint32_t kLaneCount = 4;
   static constexpr auto kCULaneModelFile = "ufld_v1_culane_288x800.onnx";
   static constexpr auto kTuSimpleModelFile = "ufld_v1_tusimple_288x800.onnx";
 

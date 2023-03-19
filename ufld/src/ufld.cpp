@@ -8,7 +8,7 @@ namespace ufld {
 void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
   assert(lanes.size() <= 4);
   const std::array<cv::Scalar, 4> kLaneColors{{{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {255, 255, 0}}};
-  for (int32_t i = 0; i < lanes.size(); ++i) {
+  for (uint32_t i = 0; i < lanes.size(); ++i) {
     const auto& lane = lanes[i];
     const auto& color = kLaneColors[i];
     constexpr auto kRadius = 5;
@@ -17,6 +17,12 @@ void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
       cv::circle(image, j, kRadius, color, kThickness);
     }
   }
+}
+
+std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {
+  auto input = Preprocess(image);
+  auto predictions = Inference(input);
+  return PredictionsToLanes(predictions, image.cols, image.rows);
 }
 
 }  // namespace ufld

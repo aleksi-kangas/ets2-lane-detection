@@ -17,7 +17,7 @@ class Device {
   [[nodiscard]] ID3D11DeviceContext* D3D11DeviceContext() const;
   [[nodiscard]] ID3D11DeviceContext* D3D11DeviceImmediateContext() const;
 
-  [[nodiscard]] int32_t DXGIOutputCount() const;
+  [[nodiscard]] uint64_t DXGIOutputCount() const;
   [[nodiscard]] Output& DXGIOutput(uint32_t index);
 
   [[nodiscard]] uint64_t DedicatedVideoMemory() const;
