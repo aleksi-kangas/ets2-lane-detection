@@ -22,7 +22,8 @@ add_library(${PROJECT_NAME}
         include/dx11/frame_buffer.h    src/frame_buffer.cpp
         include/dx11/output.h          src/output.cpp
         include/dx11/region.h          src/region.cpp
-        include/dx11/surface.h         src/surface.cpp)
+        include/dx11/surface.h         src/surface.cpp
+        include/dx11/timer.h           src/timer.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC include ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES})
 target_compile_options(${PROJECT_NAME} PRIVATE /Wall)

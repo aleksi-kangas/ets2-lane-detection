@@ -16,6 +16,7 @@
 #include "dx11/output.h"
 #include "dx11/region.h"
 #include "dx11/surface.h"
+#include "dx11/timer.h"
 
 namespace dx11 {
 
@@ -31,7 +32,7 @@ class Camera {
   Camera(Camera&&) = delete;
   Camera& operator=(Camera&&) = delete;
 
-  void StartCapture(std::optional<Region> region = std::nullopt);
+  void StartCapture(int32_t target_fps = 60, std::optional<Region> region = std::nullopt);
 
   void StopCapture();
 
@@ -52,7 +53,7 @@ class Camera {
   Event stop_capture_{};
   Event frame_available_{};
 
-  void Capture(const Region& region);
+  void Capture(int32_t target_fps, const Region& region);
 
   std::optional<cv::Mat> Grab(const Region& region);
 };

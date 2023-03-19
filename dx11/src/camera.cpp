@@ -13,11 +13,11 @@ Camera::Camera(Device& device, Output& output, std::optional<Region> region,
       region_{region.value_or(Region{0, 0, output_.Width(), output_.Height()})},
       frame_buffer_{frame_buffer_capacity} {}
 
-void Camera::StartCapture(std::optional<Region> region) {
+void Camera::StartCapture(int32_t target_fps, std::optional<Region> region) {
   if (!region.has_value()) {
     region = region_;
   }
-  capture_thread_ = std::thread([this, region]() { Capture(region.value()); });
+  capture_thread_ = std::thread([this, target_fps, region]() { Capture(target_fps, region.value()); });
 }
 
 void Camera::StopCapture() {
@@ -37,13 +37,10 @@ cv::Mat Camera::GetLatestFrame() {
   return frame.value_or(cv::Mat{output_.Height(), output_.Width(), CV_8UC4});
 }
 
-void Camera::Capture(const Region& region) {
-  // TODO Target FPS
-
+void Camera::Capture(int32_t target_fps, const Region& region) {
+  Timer timer{target_fps};
   while (!stop_capture_.IsSet()) {
-    // TODO Target FPS
-
-    // Get a frame from the duplicator
+    timer.Wait();
     const std::optional<cv::Mat> frame = Grab(region);
     if (frame) {
       std::lock_guard<std::mutex> lock{mutex_};
