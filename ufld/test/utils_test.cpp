@@ -1,5 +1,9 @@
 #include "ufld/utils.h"
 
+#include <array>
+#include <cstdint>
+#include <vector>
+
 #include <gtest/gtest.h>
 
 // 3D tensor with dimensions 2x2x3
