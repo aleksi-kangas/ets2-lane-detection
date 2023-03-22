@@ -33,8 +33,11 @@ std::vector<uint32_t> ArgMax_0(std::span<const float> input,
 
 std::vector<double> Linspace(double begin, double end, uint32_t count) {
   assert(count > 0);
+  if (count == 1) {
+    return {begin};
+  }
   std::vector<double> result(count);
-  const double step = end - begin / (count - 1);
+  const double step = (end - begin) / (count - 1);
   for (uint32_t i = 0; i < count - 1; ++i) {
     result[i] = begin + i * step;
   }
