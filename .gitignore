@@ -1,6 +1,6 @@
 .idea
-cmake-build-debug-visual-studio
-cmake-build-release-visual-studio
-cmake-build-relwithdebinfo-visual-studio
+cmake*
+!CMakeLists.txt
+!CMakePresets.json
 models/*
 !models/README.md

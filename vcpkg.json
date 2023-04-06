@@ -1,0 +1,17 @@
+{
+  "name": "ets2-lane-detection",
+  "version-string": "1.0.0",
+  "builtin-baseline": "c4f39609d4b40bfa86056593816bf0c8d02d8346",
+  "dependencies": [
+    {
+      "name": "opencv4",
+      "version>=": "4.7.0#3",
+      "platform": "x64 & windows"
+    },
+    {
+      "name": "onnxruntime-gpu",
+      "version>=": "1.14.1#1",
+      "platform": "x64 & windows"
+    }
+  ]
+}
