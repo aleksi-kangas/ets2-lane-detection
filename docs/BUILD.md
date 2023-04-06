@@ -32,7 +32,8 @@ The presets have been tested with *JetBrains CLion*.
 ### OnnxRuntime Providers
 
 The `onnxruntime` library supports multiple providers for execution.
-Copy the following DLLs to the build directory next to the executable (`<cmake-build>`):
-- `<cmake-build>/vcpkg_installed/x64-windows/bin/onnxruntime_providers_cuda.dll`
-- `<cmake-build>/vcpkg_installed/x64-windows/bin/onnxruntime_providers_shared.dll`
-- `<cmake-build>/vcpkg_installed/x64-windows/bin/onnxruntime_providers_tensorrt.dll`
+The build system should automatically copy the necessary DLLs next to the executable.
+The following DLLs shall be available:
+- `onnxruntime_providers_cuda.dll`
+- `onnxruntime_providers_shared.dll`
+- `onnxruntime_providers_tensorrt.dll`
