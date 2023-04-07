@@ -41,6 +41,21 @@ void ILaneDetector::ColorPreprocess(cv::Mat& image) {
   image = (image - mean) / std;
 }
 
+Ort::Value ILaneDetector::CreateInputTensor(const cv::Mat& image) {
+  cv::Mat preprocessed_image;
+  cv::dnn::blobFromImage(image, preprocessed_image);
+
+  input_tensor_data_.resize(static_cast<size_t>(input_tensor_size_));
+  std::copy(preprocessed_image.begin<float>(), preprocessed_image.end<float>(),
+            input_tensor_data_.begin());
+
+  Ort::MemoryInfo memory_info =
+      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  return Ort::Value::CreateTensor<float>(
+      memory_info, input_tensor_data_.data(), input_tensor_data_.size(),
+      input_dimensions_.data(), input_dimensions_.size());
+}
+
 void ILaneDetector::InitializeSession(const std::filesystem::path& model_path) {
   if (!std::filesystem::exists(model_path)) {
     std::cerr << "Model file not found: " << model_path << std::endl;

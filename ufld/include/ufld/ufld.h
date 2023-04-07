@@ -50,6 +50,7 @@ class ILaneDetector {
 
   [[nodiscard]] virtual Ort::Value Preprocess(const cv::Mat& image) = 0;
   static void ColorPreprocess(cv::Mat& image);
+  Ort::Value CreateInputTensor(const cv::Mat& image);
 
   [[nodiscard]] virtual std::vector<Ort::Value> Inference(
       const Ort::Value& input) = 0;

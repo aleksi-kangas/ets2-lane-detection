@@ -42,21 +42,8 @@ LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
 Ort::Value LaneDetector::Preprocess(const cv::Mat& image) {
   cv::Mat input_image;
   cv::resize(image, input_image, cv::Size{kInputWidth, kInputHeight});
-
   ColorPreprocess(input_image);
-
-  cv::Mat preprocessed_image;
-  cv::dnn::blobFromImage(input_image, preprocessed_image);
-
-  input_tensor_data_.resize(static_cast<size_t>(input_tensor_size_));
-  std::copy(preprocessed_image.begin<float>(), preprocessed_image.end<float>(),
-            input_tensor_data_.begin());
-
-  Ort::MemoryInfo memory_info =
-      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-  return Ort::Value::CreateTensor<float>(
-      memory_info, input_tensor_data_.data(), input_tensor_data_.size(),
-      input_dimensions_.data(), input_dimensions_.size());
+  return CreateInputTensor(input_image);
 }
 
 std::vector<Ort::Value> LaneDetector::Inference(const Ort::Value& input) {
