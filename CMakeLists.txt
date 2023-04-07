@@ -17,7 +17,7 @@ add_executable(${PROJECT_NAME}
         main.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE dx11 ufld ${OpenCV_LIBRARIES})
-target_compile_options(${PROJECT_NAME} PRIVATE /Wall)
+target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 # Copy the OnnxRuntime provider DLLs which are lazy loaded
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
