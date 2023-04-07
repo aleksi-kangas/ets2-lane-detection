@@ -51,7 +51,8 @@ struct TuSimpleConfig : public IConfig {
 
 class LaneDetector final : public ILaneDetector {
  public:
-  LaneDetector(const std::filesystem::path& model_directory, ModelType model_type);
+  LaneDetector(const std::filesystem::path& model_directory,
+               ModelType model_type);
 
   LaneDetector(const LaneDetector&) = delete;
   LaneDetector& operator=(const LaneDetector&) = delete;

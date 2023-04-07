@@ -26,7 +26,8 @@ ModelType ModelTypeFromString(const std::string& model_type) {
   }
 }
 
-LaneDetector::LaneDetector(const std::filesystem::path& model_directory, ModelType model_type) {
+LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
+                           ModelType model_type) {
   std::filesystem::path model_path = [=]() {
     std::filesystem::path base_path{model_directory};
     switch (model_type) {
