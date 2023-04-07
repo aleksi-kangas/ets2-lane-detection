@@ -2,9 +2,7 @@
 
 #include <array>
 #include <cassert>
-#include <filesystem>
 #include <iostream>
-#include <numeric>
 #include <span>
 #include <stdexcept>
 
@@ -27,24 +25,8 @@ ModelType ModelTypeFromString(const std::string& model_type) {
 }
 
 LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
-                           ModelType model_type) {
-  std::filesystem::path model_path = [=]() {
-    std::filesystem::path base_path{model_directory};
-    switch (model_type) {
-      case ModelType::kCULane:
-        return base_path.append(kCULaneModelFile);
-      case ModelType::kTuSimple:
-        return base_path.append(kTuSimpleModelFile);
-      default:
-        throw std::invalid_argument{"Invalid model type"};
-    }
-  }();
-
-  if (!std::filesystem::exists(model_path)) {
-    std::cerr << "Model file not found: " << model_path << std::endl;
-    throw std::invalid_argument{"Model file not found"};
-  }
-
+                           ModelType model_type)
+    : ILaneDetector{ConstructModelPath(model_directory, model_type)} {
   config_ = [=]() -> std::unique_ptr<IConfig> {
     switch (model_type) {
       case ModelType::kCULane:
@@ -55,9 +37,6 @@ LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
         throw std::invalid_argument{"Invalid model type"};
     }
   }();
-
-  InitSession(model_path);
-  InitModelInfo();
 }
 
 Ort::Value LaneDetector::Preprocess(const cv::Mat& image) {
@@ -177,65 +156,16 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
   return lanes;
 }
 
-void LaneDetector::InitSession(const std::filesystem::path& model_path) {
-  Ort::SessionOptions session_options{};
-  session_options.SetIntraOpNumThreads(1);
-
-  try {  // TensorRT
-    OrtTensorRTProviderOptions tensorrt_options{};
-    tensorrt_options.device_id = 0;
-    // "TensorRT option trt_max_partition_iterations must be a positive integer value. Set it to 1000"
-    tensorrt_options.trt_max_partition_iterations = 1000;
-    // "TensorRT option trt_min_subgraph_size must be a positive integer value. Set it to 1"
-    tensorrt_options.trt_min_subgraph_size = 1;
-    // "TensorRT option trt_max_workspace_size must be a positive integer value. Set it to 1073741824 (1GB)"
-    tensorrt_options.trt_max_workspace_size = 1073741824;
-    session_options.AppendExecutionProvider_TensorRT(tensorrt_options);
-  } catch (const Ort::Exception& e) {
-    std::cerr << "TensorRT is not available: " << e.what() << std::endl;
-  }
-
-  try {
-    session_ = Ort::Session(env_, model_path.c_str(), session_options);
-  } catch (const Ort::Exception& e) {
-    std::cerr << "Failed to create OnnxRuntime session: " << e.what()
-              << std::endl;
-    throw;
-  }
-
-  assert(session_.GetInputCount() == 1);
-  assert(session_.GetOutputCount() == 1);
-}
-
-void LaneDetector::InitModelInfo() {
-  assert(session_.GetInputCount() == 1);
-  assert(session_.GetOutputCount() == 1);
-
-  const auto allocated_input_name =
-      session_.GetInputNameAllocated(0, allocator_);
-  input_name_ = std::string{allocated_input_name.get()};
-
-  Ort::TypeInfo input_type_info = session_.GetInputTypeInfo(0);
-  assert(input_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
-  input_dimensions_ = input_type_info.GetTensorTypeAndShapeInfo().GetShape();
-  input_tensor_size_ =
-      std::accumulate(input_dimensions_.begin(), input_dimensions_.end(), 1LL,
-                      std::multiplies<>());
-
-  // Realistically, we have exactly one output, but does not hurt to be generic.
-  for (auto output_index = 0; output_index < session_.GetOutputCount();
-       ++output_index) {
-    const auto allocated_output_name =
-        session_.GetOutputNameAllocated(output_index, allocator_);
-    output_names_.emplace_back(allocated_output_name.get());
-    Ort::TypeInfo output_type_info = session_.GetOutputTypeInfo(output_index);
-    assert(output_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
-    output_dimensions_.emplace_back(
-        output_type_info.GetTensorTypeAndShapeInfo().GetShape());
-    const auto& output_dimensions = output_dimensions_.back();
-    output_tensor_sizes_.emplace_back(
-        std::accumulate(output_dimensions.begin(), output_dimensions.end(), 1LL,
-                        std::multiplies<>()));
+std::filesystem::path LaneDetector::ConstructModelPath(
+    const std::filesystem::path& model_directory,
+    ufld::v1::ModelType model_type) {
+  switch (model_type) {
+    case ufld::v1::ModelType::kCULane:
+      return model_directory / kCULaneModelFile;
+    case ufld::v1::ModelType::kTuSimple:
+      return model_directory / kTuSimpleModelFile;
+    default:
+      throw std::runtime_error("Invalid model type");
   }
 }
 

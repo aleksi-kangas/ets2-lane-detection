@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -18,7 +19,7 @@ void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image);
 
 class ILaneDetector {
  public:
-  ILaneDetector() = default;
+  explicit ILaneDetector(const std::filesystem::path& model_path);
   virtual ~ILaneDetector() = default;
 
   ILaneDetector(const ILaneDetector&) = delete;
@@ -54,6 +55,10 @@ class ILaneDetector {
   [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(
       const std::vector<Ort::Value>& outputs, int32_t image_width,
       int32_t image_height) = 0;
+
+  void InitializeSession(const std::filesystem::path& model_path);
+  void InitializeInput();
+  void InitializeOutputs();
 };
 
 }  // namespace ufld

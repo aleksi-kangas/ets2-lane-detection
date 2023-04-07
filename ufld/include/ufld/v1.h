@@ -78,9 +78,8 @@ class LaneDetector final : public ILaneDetector {
       const std::vector<Ort::Value>& outputs, int32_t image_width,
       int32_t image_height) override;
 
-  void InitSession(const std::filesystem::path& model_path);
-
-  void InitModelInfo();
+  [[nodiscard]] static std::filesystem::path ConstructModelPath(
+      const std::filesystem::path& model_directory, ModelType model_type);
 };
 
 }  // namespace ufld::v1
