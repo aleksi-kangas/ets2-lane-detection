@@ -19,7 +19,6 @@ void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image);
 
 class ILaneDetector {
  public:
-  explicit ILaneDetector(const std::filesystem::path& model_path);
   virtual ~ILaneDetector() = default;
 
   ILaneDetector(const ILaneDetector&) = delete;
@@ -31,6 +30,8 @@ class ILaneDetector {
   [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image);
 
  protected:
+  explicit ILaneDetector(const std::filesystem::path& model_path);
+
   Ort::Env env_{ORT_LOGGING_LEVEL_WARNING, "UFLD"};
   Ort::Session session_{nullptr};
   Ort::AllocatorWithDefaultOptions allocator_{};

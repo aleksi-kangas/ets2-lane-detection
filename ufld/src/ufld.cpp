@@ -21,16 +21,16 @@ void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
   }
 }
 
-ILaneDetector::ILaneDetector(const std::filesystem::path& model_path) {
-    InitializeSession(model_path);
-    InitializeInput();
-    InitializeOutputs();
-}
-
 std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {
   const auto input = Preprocess(image);
   const auto outputs = Inference(input);
   return PredictionsToLanes(outputs, image.cols, image.rows);
+}
+
+ILaneDetector::ILaneDetector(const std::filesystem::path& model_path) {
+  InitializeSession(model_path);
+  InitializeInput();
+  InitializeOutputs();
 }
 
 void ILaneDetector::ColorPreprocess(cv::Mat& image) {
