@@ -20,9 +20,9 @@ void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
 }
 
 std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {
-  auto input = Preprocess(image);
-  auto predictions = Inference(input);
-  return PredictionsToLanes(predictions, image.cols, image.rows);
+  const auto input = Preprocess(image);
+  const auto outputs = Inference(input);
+  return PredictionsToLanes(outputs, image.cols, image.rows);
 }
 
 }  // namespace ufld

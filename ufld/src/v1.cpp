@@ -83,23 +83,48 @@ Ort::Value LaneDetector::Preprocess(const cv::Mat& image) {
       input_dimensions_.data(), input_dimensions_.size());
 }
 
-Ort::Value LaneDetector::Inference(const Ort::Value& input) {
-  output_tensor_data_.resize(static_cast<size_t>(output_tensor_size_));
+std::vector<Ort::Value> LaneDetector::Inference(const Ort::Value& input) {
+  output_tensor_data_.clear();
   Ort::MemoryInfo memory_info =
       Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-  auto output = Ort::Value::CreateTensor<float>(
-      memory_info, output_tensor_data_.data(), output_tensor_data_.size(),
-      output_dimensions_.data(), output_dimensions_.size());
+
+  std::vector<Ort::Value> output_tensors;
+  for (auto output_index = 0; output_index < session_.GetOutputCount();
+       ++output_index) {
+    output_tensor_data_.emplace_back();
+    auto& output_tensor_data = output_tensor_data_.back();
+    output_tensor_data.resize(
+        static_cast<size_t>(output_tensor_sizes_[output_index]));
+    auto& output_dimensions = output_dimensions_[output_index];
+    output_tensors.emplace_back(Ort::Value::CreateTensor<float>(
+        memory_info, output_tensor_data.data(), output_tensor_data.size(),
+        output_dimensions.data(), output_dimensions.size()));
+  }
+
   const char* input_name = input_name_.c_str();
-  const char* output_name = output_name_.c_str();
-  session_.Run(Ort::RunOptions{nullptr}, &input_name, &input, 1, &output_name,
-               &output, 1);
-  return output;
+
+  // Ort::Session::Run expects an array of const char* for the output names
+  auto OutputNamesToRaw = [&]() {
+    std::vector<const char*> output_names;
+    for (const auto& output_name : output_names_) {
+      output_names.push_back(output_name.c_str());
+    }
+    return output_names;
+  };
+
+  session_.Run(Ort::RunOptions{nullptr}, &input_name, &input, 1,
+               OutputNamesToRaw().data(), output_tensors.data(),
+               output_tensors.size());
+  return output_tensors;
 }
 
 std::vector<Lane> LaneDetector::PredictionsToLanes(
-    const Ort::Value& predictions, int32_t image_width, int32_t image_height) {
+    const std::vector<Ort::Value>& outputs, int32_t image_width,
+    int32_t image_height) {
   // https://github.com/cfzd/Ultra-Fast-Lane-Detection/blob/master/demo.py
+
+  // We have exactly 1 output
+  const auto& predictions = outputs[0];
 
   const std::array<uint32_t, 3> k3DShape{
       {config_->griding_num, config_->cls_num_per_lane, kLaneCount}};
@@ -196,15 +221,21 @@ void LaneDetector::InitModelInfo() {
       std::accumulate(input_dimensions_.begin(), input_dimensions_.end(), 1LL,
                       std::multiplies<>());
 
-  const auto allocated_output_name =
-      session_.GetOutputNameAllocated(0, allocator_);
-  output_name_ = std::string{allocated_output_name.get()};
-  Ort::TypeInfo output_type_info = session_.GetOutputTypeInfo(0);
-  assert(output_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
-  output_dimensions_ = output_type_info.GetTensorTypeAndShapeInfo().GetShape();
-  output_tensor_size_ =
-      std::accumulate(output_dimensions_.begin(), output_dimensions_.end(), 1LL,
-                      std::multiplies<>());
+  // Realistically, we have exactly one output, but does not hurt to be generic.
+  for (auto output_index = 0; output_index < session_.GetOutputCount();
+       ++output_index) {
+    const auto allocated_output_name =
+        session_.GetOutputNameAllocated(output_index, allocator_);
+    output_names_.emplace_back(allocated_output_name.get());
+    Ort::TypeInfo output_type_info = session_.GetOutputTypeInfo(output_index);
+    assert(output_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
+    output_dimensions_.emplace_back(
+        output_type_info.GetTensorTypeAndShapeInfo().GetShape());
+    const auto& output_dimensions = output_dimensions_.back();
+    output_tensor_sizes_.emplace_back(
+        std::accumulate(output_dimensions.begin(), output_dimensions.end(), 1LL,
+                        std::multiplies<>()));
+  }
 }
 
 }  // namespace ufld::v1

@@ -34,24 +34,25 @@ class ILaneDetector {
   Ort::Session session_{nullptr};
   Ort::AllocatorWithDefaultOptions allocator_{};
 
-  // Input
+  // Input (always 1 image)
   std::string input_name_{};
   std::vector<int64_t> input_dimensions_{};
   int64_t input_tensor_size_{};
   std::vector<float> input_tensor_data_{};
 
-  // Output
-  std::string output_name_{};
-  std::vector<int64_t> output_dimensions_{};
-  int64_t output_tensor_size_{};
-  std::vector<float> output_tensor_data_{};
+  // Output(s)
+  std::vector<std::string> output_names_{};
+  std::vector<std::vector<int64_t>> output_dimensions_{};
+  std::vector<int64_t> output_tensor_sizes_{};
+  std::vector<std::vector<float>> output_tensor_data_{};
 
   [[nodiscard]] virtual Ort::Value Preprocess(const cv::Mat& image) = 0;
 
-  [[nodiscard]] virtual Ort::Value Inference(const Ort::Value& input) = 0;
+  [[nodiscard]] virtual std::vector<Ort::Value> Inference(
+      const Ort::Value& input) = 0;
 
   [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(
-      const Ort::Value& predictions, int32_t image_width,
+      const std::vector<Ort::Value>& outputs, int32_t image_width,
       int32_t image_height) = 0;
 };
 
