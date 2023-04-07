@@ -9,7 +9,7 @@
 #include "ufld/v1.h"
 
 std::unique_ptr<ufld::ILaneDetector> CreateLaneDetector(
-    std::filesystem::path model_directory, ufld::Version version,
+    const std::filesystem::path& model_directory, ufld::Version version,
     std::variant<ufld::v1::ModelType> type) {
   switch (version) {
     case ufld::Version::kV1:
