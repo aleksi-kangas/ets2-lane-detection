@@ -22,8 +22,9 @@ void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
 }
 
 std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {
-  const auto input = Preprocess(image);
-  const auto outputs = Inference(input);
+  std::lock_guard<std::mutex> lock{detection_mutex_};
+  const auto input_image = Preprocess(image);
+  const auto outputs = Inference(input_image);
   return PredictionsToLanes(outputs, image.cols, image.rows);
 }
 
@@ -39,21 +40,6 @@ void ILaneDetector::ColorPreprocess(cv::Mat& image) {
   const cv::Scalar mean{0.485, 0.456, 0.406};
   const cv::Scalar std{0.229, 0.224, 0.225};
   image = (image - mean) / std;
-}
-
-Ort::Value ILaneDetector::CreateInputTensor(const cv::Mat& image) {
-  cv::Mat preprocessed_image;
-  cv::dnn::blobFromImage(image, preprocessed_image);
-
-  input_tensor_data_.resize(static_cast<size_t>(input_tensor_size_));
-  std::copy(preprocessed_image.begin<float>(), preprocessed_image.end<float>(),
-            input_tensor_data_.begin());
-
-  Ort::MemoryInfo memory_info =
-      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-  return Ort::Value::CreateTensor<float>(
-      memory_info, input_tensor_data_.data(), input_tensor_data_.size(),
-      input_dimensions_.data(), input_dimensions_.size());
 }
 
 void ILaneDetector::InitializeSession(const std::filesystem::path& model_path) {
@@ -121,6 +107,61 @@ void ILaneDetector::InitializeOutputs() {
         std::accumulate(output_dimensions.begin(), output_dimensions.end(), 1LL,
                         std::multiplies<>()));
   }
+}
+
+Ort::Value ILaneDetector::InitializeInputTensor(const cv::Mat& image) {
+  cv::Mat preprocessed_image;
+  cv::dnn::blobFromImage(image, preprocessed_image);
+
+  input_tensor_data_.resize(static_cast<size_t>(input_tensor_size_));
+  std::copy(preprocessed_image.begin<float>(), preprocessed_image.end<float>(),
+            input_tensor_data_.begin());
+
+  Ort::MemoryInfo memory_info =
+      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  return Ort::Value::CreateTensor<float>(
+      memory_info, input_tensor_data_.data(), input_tensor_data_.size(),
+      input_dimensions_.data(), input_dimensions_.size());
+}
+
+std::vector<Ort::Value> ILaneDetector::InitializeOutputTensors() {
+  output_tensor_data_.clear();
+  Ort::MemoryInfo memory_info =
+      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  std::vector<Ort::Value> output_tensors;
+  for (size_t output_index = 0; output_index < session_.GetOutputCount();
+       ++output_index) {
+    output_tensor_data_.emplace_back();
+    auto& output_tensor_data = output_tensor_data_.back();
+    output_tensor_data.resize(
+        static_cast<size_t>(output_tensor_sizes_[output_index]));
+    auto& output_dimensions = output_dimensions_[output_index];
+    output_tensors.emplace_back(Ort::Value::CreateTensor<float>(
+        memory_info, output_tensor_data.data(), output_tensor_data.size(),
+        output_dimensions.data(), output_dimensions.size()));
+  }
+  return output_tensors;
+}
+
+std::vector<Ort::Value> ILaneDetector::Inference(const cv::Mat& image) {
+  auto input_tensor = InitializeInputTensor(image);
+  auto output_tensors = InitializeOutputTensors();
+
+  const char* input_name = input_name_.c_str();
+
+  // Ort::Session::Run expects an array of const char* for the output names
+  auto OutputNamesToRaw = [&]() {
+    std::vector<const char*> output_names;
+    for (const auto& output_name : output_names_) {
+      output_names.push_back(output_name.c_str());
+    }
+    return output_names;
+  };
+
+  session_.Run(Ort::RunOptions{nullptr}, &input_name, &input_tensor, 1,
+               OutputNamesToRaw().data(), output_tensors.data(),
+               output_tensors.size());
+  return output_tensors;
 }
 
 }  // namespace ufld

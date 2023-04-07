@@ -39,46 +39,11 @@ LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
   }();
 }
 
-Ort::Value LaneDetector::Preprocess(const cv::Mat& image) {
+cv::Mat LaneDetector::Preprocess(const cv::Mat& image) {
   cv::Mat input_image;
   cv::resize(image, input_image, cv::Size{kInputWidth, kInputHeight});
   ColorPreprocess(input_image);
-  return CreateInputTensor(input_image);
-}
-
-std::vector<Ort::Value> LaneDetector::Inference(const Ort::Value& input) {
-  output_tensor_data_.clear();
-  Ort::MemoryInfo memory_info =
-      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-
-  std::vector<Ort::Value> output_tensors;
-  for (auto output_index = 0; output_index < session_.GetOutputCount();
-       ++output_index) {
-    output_tensor_data_.emplace_back();
-    auto& output_tensor_data = output_tensor_data_.back();
-    output_tensor_data.resize(
-        static_cast<size_t>(output_tensor_sizes_[output_index]));
-    auto& output_dimensions = output_dimensions_[output_index];
-    output_tensors.emplace_back(Ort::Value::CreateTensor<float>(
-        memory_info, output_tensor_data.data(), output_tensor_data.size(),
-        output_dimensions.data(), output_dimensions.size()));
-  }
-
-  const char* input_name = input_name_.c_str();
-
-  // Ort::Session::Run expects an array of const char* for the output names
-  auto OutputNamesToRaw = [&]() {
-    std::vector<const char*> output_names;
-    for (const auto& output_name : output_names_) {
-      output_names.push_back(output_name.c_str());
-    }
-    return output_names;
-  };
-
-  session_.Run(Ort::RunOptions{nullptr}, &input_name, &input, 1,
-               OutputNamesToRaw().data(), output_tensors.data(),
-               output_tensors.size());
-  return output_tensors;
+  return input_image;
 }
 
 std::vector<Lane> LaneDetector::PredictionsToLanes(

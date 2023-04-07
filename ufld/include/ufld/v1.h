@@ -69,10 +69,7 @@ class LaneDetector final : public ILaneDetector {
 
   std::unique_ptr<const IConfig> config_{nullptr};
 
-  [[nodiscard]] Ort::Value Preprocess(const cv::Mat& image) override;
-
-  [[nodiscard]] std::vector<Ort::Value> Inference(
-      const Ort::Value& input) override;
+  [[nodiscard]] cv::Mat Preprocess(const cv::Mat& image) override;
 
   [[nodiscard]] std::vector<Lane> PredictionsToLanes(
       const std::vector<Ort::Value>& outputs, int32_t image_width,
