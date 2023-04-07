@@ -42,12 +42,8 @@ LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
 Ort::Value LaneDetector::Preprocess(const cv::Mat& image) {
   cv::Mat input_image;
   cv::resize(image, input_image, cv::Size{kInputWidth, kInputHeight});
-  cv::cvtColor(input_image, input_image, cv::COLOR_BGR2RGB);
-  input_image.convertTo(input_image, CV_32FC3, 1.0 / 255.0);
 
-  cv::Scalar mean{0.485, 0.456, 0.406};
-  cv::Scalar std{0.229, 0.224, 0.225};
-  input_image = (input_image - mean) / std;
+  ColorPreprocess(input_image);
 
   cv::Mat preprocessed_image;
   cv::dnn::blobFromImage(input_image, preprocessed_image);
