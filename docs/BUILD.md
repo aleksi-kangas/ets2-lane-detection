@@ -12,10 +12,14 @@ Dependencies are managed by *vcpkg* and are specified in `vcpkg.json`.
 
 ### CMake Configuration
 
-Copy the `onnxruntimeConfig.cmake` and `onnxruntimeVersion.cmake` to the
-directory `<cmake-build>/vcpkg_installed/x64-windows/share/onnxruntime-gpu/`.
-These files enable the use of `find_package`, which is not yet supported
-properly in `onnxruntime` available from *vcpkg*. Credits to *jcarius*.
+Unfortunately, at the time of writing, the `onnxruntime-gpu` library from
+*vcpkg* does not support CMake's `find_package` command yet (see
+e.g. [issue](https://github.com/microsoft/onnxruntime/issues/7150)).
+I've included custom `onnxruntimeConfig.cmake` and `onnxruntimeVersion.cmake` to
+achieve such functionality. The files are automatically copied
+to `<cmake-build>/vcpkg_installed/x64-windows/share/onnxruntime-gpu/`
+at configuration time. Shall there be any issues, the files are found in this
+directory.
 
 ### Models
 
@@ -32,8 +36,10 @@ The presets have been tested with *JetBrains CLion*.
 ### OnnxRuntime Providers
 
 The `onnxruntime` library supports multiple providers for execution.
-The build system should automatically copy the necessary DLLs next to the executable.
+The build system should automatically copy the necessary DLLs next to the
+executable.
 The following DLLs shall be available:
+
 - `onnxruntime_providers_cuda.dll`
 - `onnxruntime_providers_shared.dll`
 - `onnxruntime_providers_tensorrt.dll`
