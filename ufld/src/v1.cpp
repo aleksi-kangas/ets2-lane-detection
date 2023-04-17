@@ -40,10 +40,9 @@ LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
 }
 
 cv::Mat LaneDetector::Preprocess(const cv::Mat& image) {
-  cv::Mat input_image;
-  cv::resize(image, input_image, cv::Size{kInputWidth, kInputHeight});
-  ColorPreprocess(input_image);
-  return input_image;
+  cv::Mat resized_image{};
+  cv::resize(image, resized_image, cv::Size{kInputWidth, kInputHeight});
+  return ColorPreprocess(resized_image);
 }
 
 std::vector<Lane> LaneDetector::PredictionsToLanes(

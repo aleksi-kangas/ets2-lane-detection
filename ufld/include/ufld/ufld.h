@@ -51,7 +51,7 @@ class ILaneDetector {
   std::vector<std::vector<float>> output_tensor_data_{};
 
   [[nodiscard]] virtual cv::Mat Preprocess(const cv::Mat& image) = 0;
-  static void ColorPreprocess(cv::Mat& image);
+  static cv::Mat ColorPreprocess(const cv::Mat& image);
 
   [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(
       const std::vector<Ort::Value>& outputs, int32_t image_width,
