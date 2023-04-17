@@ -37,8 +37,11 @@ int main(int argc, char** argv) {
     if (frame) {
       const auto lanes = lane_detector->Detect(frame.value());
       ufld::VisualizeLanes(lanes, frame.value());
-      cv::imshow("Detected Lanes", frame.value());
-      if (cv::waitKey(1) == 27) {
+
+      cv::Mat preview{};
+      cv::resize(frame.value(), preview, {1280, 720});
+      cv::imshow("Detected Lanes", preview);
+      if (cv::waitKey(1) == 27) {  // ESC
         break;
       }
     }
