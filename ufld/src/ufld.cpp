@@ -35,11 +35,13 @@ ILaneDetector::ILaneDetector(const std::filesystem::path& model_path) {
 }
 
 cv::Mat ILaneDetector::ColorPreprocess(const cv::Mat& image) {
-  cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
-  image.convertTo(image, CV_32FC3, 1.0f / 255.0f);
+  cv::Mat converted_image;
+  cv::cvtColor(image, converted_image, cv::COLOR_BGR2RGB);
+  converted_image.convertTo(converted_image, CV_32FC3, 1.0f / 255.0f);
+  // ResNet
   const cv::Scalar mean{0.485, 0.456, 0.406};
   const cv::Scalar std{0.229, 0.224, 0.225};
-  return (image - mean) / std;
+  return (converted_image - mean) / std;
 }
 
 void ILaneDetector::InitializeSession(const std::filesystem::path& model_path) {
