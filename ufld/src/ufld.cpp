@@ -4,21 +4,48 @@
 #include <cassert>
 #include <numeric>
 
+namespace {
+void DrawLanePoints(const std::vector<ufld::Lane>& lanes,
+                    std::array<bool, 4> lanes_to_draw, cv::Mat& image) {
+  assert(lanes.size() <= 4);
+  const std::array<cv::Scalar, 4> kLaneColors{
+      {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {255, 255, 0}}};
+  for (uint32_t lane_index = 0; lane_index < lanes.size(); ++lane_index) {
+    if (!lanes_to_draw[lane_index])
+      continue;
+    const auto& lane = lanes[lane_index];
+    constexpr auto kRadius = 5;
+    constexpr auto kThickness = -1;  // Fill
+    for (const auto j : lane) {
+      cv::circle(image, j, kRadius, kLaneColors[lane_index], kThickness);
+    }
+  }
+}
+
+void DrawCenterLaneMask(const std::vector<ufld::Lane>& lanes, cv::Mat& image) {
+  assert(lanes.size() <= 4);
+  const auto& left_divider = lanes[1];
+  const auto& right_divider = lanes[2];
+  if (left_divider.empty() || right_divider.empty())
+    return;
+  cv::Mat mask = image.clone();
+  std::vector<cv::Point> lane_polygon{};
+  lane_polygon.reserve(left_divider.size() + right_divider.size());
+  lane_polygon.insert(lane_polygon.end(), left_divider.begin(),
+                      left_divider.end());
+  lane_polygon.insert(lane_polygon.end(), right_divider.rbegin(),
+                      right_divider.rend());
+  cv::fillPoly(mask, {lane_polygon}, cv::Scalar{255, 191, 0});
+  cv::addWeighted(mask, 0.3, image, 0.7, 0, image);
+}
+}  // namespace
+
 namespace ufld {
 
 void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
   assert(lanes.size() <= 4);
-  const std::array<cv::Scalar, 4> kLaneColors{
-      {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {255, 255, 0}}};
-  for (uint32_t i = 0; i < lanes.size(); ++i) {
-    const auto& lane = lanes[i];
-    const auto& color = kLaneColors[i];
-    constexpr auto kRadius = 5;
-    constexpr auto kThickness = -1;  // Fill
-    for (const auto j : lane) {
-      cv::circle(image, j, kRadius, color, kThickness);
-    }
-  }
+  DrawLanePoints(lanes, {false, true, true, false}, image);
+  DrawCenterLaneMask(lanes, image);
 }
 
 std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {
