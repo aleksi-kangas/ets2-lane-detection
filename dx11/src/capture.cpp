@@ -32,6 +32,7 @@ Capture::~Capture() {
 }
 
 Camera* Capture::Start(uint32_t device_index, uint32_t output_index,
+                       uint32_t frame_buffer_capacity,
                        std::optional<cv::Rect> region) {
   std::lock_guard<std::mutex> lock{mutex_};
 
@@ -60,7 +61,7 @@ Camera* Capture::Start(uint32_t device_index, uint32_t output_index,
   }
   camera_ = std::make_unique<Camera>(
       devices_[device_index], devices_[device_index].DXGIOutput(output_index),
-      region);
+      frame_buffer_capacity, region);
   camera_->StartCapture();
   return camera_.get();
 }

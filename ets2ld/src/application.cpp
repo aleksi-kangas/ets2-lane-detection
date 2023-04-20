@@ -23,7 +23,7 @@ Application::~Application() {
 }
 
 void Application::Run() {
-  camera_ = capture_.Start(0, 0);
+  camera_ = capture_.Start(0, 0, 1);
   lane_detection_thread_ = std::thread{&Application::LaneDetectionThread, this};
 
   // UI loop
@@ -50,7 +50,7 @@ void Application::Run() {
 void Application::LaneDetectionThread() {
   while (!stop_lane_detection_.IsSet()) {
     // TODO What if camera is not valid due to region change etc?
-    const cv::Mat frame = camera_->GetLatestFrameWait();
+    const cv::Mat frame = camera_->GetNewestFrame();
 
     LaneDetectionResult result{};
     result.frame = frame;

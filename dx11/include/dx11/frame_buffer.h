@@ -1,31 +1,32 @@
 #pragma once
 
+#include <condition_variable>
 #include <cstdint>
-#include <deque>
-#include <optional>
+#include <mutex>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 
 namespace dx11 {
-
-/**
- * Frame buffer for storing frames. Note, this class is not thread-safe.
- * Thread-safety is the responsibility of the caller.
- */
 class FrameBuffer {
  public:
-  explicit FrameBuffer(uint32_t capacity = 64);
-
+  explicit FrameBuffer(uint32_t capacity);
   FrameBuffer(const FrameBuffer&) = delete;
   FrameBuffer& operator=(const FrameBuffer&) = delete;
+  FrameBuffer(FrameBuffer&&) = delete;
+  FrameBuffer& operator=(FrameBuffer&&) = delete;
 
-  void AddFrame(cv::Mat frame);
-
-  [[nodiscard]] std::optional<cv::Mat> GetNewestFrame();
+  void Push(cv::Mat frame);
+  [[nodiscard]] cv::Mat GetNewest();
 
  private:
-  uint32_t capacity_;
-  std::deque<cv::Mat> frames_{};  // TODO Use a vector for contiguous memory?
-};
+  uint32_t capacity_{16};
+  std::vector<cv::Mat> frames_{};
+  bool is_full_{false};
+  uint32_t head_{0};
+  uint32_t tail_{0};
 
+  std::mutex mutex_{};
+  std::condition_variable cv_{};
+};
 }  // namespace dx11

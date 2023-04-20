@@ -19,6 +19,7 @@ class Capture {
   ~Capture();
 
   Camera* Start(uint32_t device_index, uint32_t output_index,
+                uint32_t frame_buffer_capacity = 16,
                 std::optional<cv::Rect> region = std::nullopt);
   void Stop();
 

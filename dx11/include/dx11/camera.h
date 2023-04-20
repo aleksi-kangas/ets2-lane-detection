@@ -21,9 +21,8 @@ namespace dx11 {
 
 class Camera {
  public:
-  Camera(Device& device, Output& output,
-         std::optional<cv::Rect> region = std::nullopt,
-         uint32_t frame_buffer_capacity = 64);
+  Camera(Device& device, Output& output, uint32_t frame_buffer_capacity = 16,
+         std::optional<cv::Rect> region = std::nullopt);
 
   Camera(const Camera&) = delete;
   Camera& operator=(const Camera&) = delete;
@@ -36,8 +35,7 @@ class Camera {
 
   void StopCapture();
 
-  [[nodiscard]] std::optional<cv::Mat> GetLatestFrame();
-  [[nodiscard]] cv::Mat GetLatestFrameWait();
+  [[nodiscard]] cv::Mat GetNewestFrame();
 
  private:
   Device& device_;
@@ -49,10 +47,8 @@ class Camera {
 
   FrameBuffer frame_buffer_;
 
-  std::mutex mutex_{};
   std::thread capture_thread_{};
   Event stop_capture_{};
-  Event frame_available_{};
 
   void Capture(int32_t target_fps, const cv::Rect& region);
 

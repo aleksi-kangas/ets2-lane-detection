@@ -4,8 +4,8 @@
 
 namespace dx11 {
 
-Camera::Camera(Device& device, Output& output, std::optional<cv::Rect> region,
-               uint32_t frame_buffer_capacity)
+Camera::Camera(Device& device, Output& output, uint32_t frame_buffer_capacity,
+               std::optional<cv::Rect> region)
     : device_{device},
       output_{output},
       duplicator_{device, output},
@@ -25,28 +25,11 @@ void Camera::StartCapture(int32_t target_fps, std::optional<cv::Rect> region) {
 void Camera::StopCapture() {
   stop_capture_.Set();
   capture_thread_.join();
-  frame_available_.Clear();
   stop_capture_.Clear();
 }
 
-std::optional<cv::Mat> Camera::GetLatestFrame() {
-  if (!frame_available_.IsSet()) {
-    return std::nullopt;
-  }
-  std::lock_guard<std::mutex> lock{mutex_};
-  const auto frame = frame_buffer_.GetNewestFrame();
-  frame_available_.Clear();
-  return frame;
-}
-
-cv::Mat Camera::GetLatestFrameWait() {
-  frame_available_.Wait();
-  std::lock_guard<std::mutex> lock{mutex_};
-  const auto frame = frame_buffer_.GetNewestFrame();
-  // This should always pass, as we wait for a frame to be available
-  assert(frame.has_value());
-  frame_available_.Clear();
-  return frame.value_or(cv::Mat{output_.Height(), output_.Width(), CV_8UC4});
+cv::Mat Camera::GetNewestFrame() {
+  return frame_buffer_.GetNewest();
 }
 
 void Camera::Capture(int32_t target_fps, const cv::Rect& region) {
@@ -55,9 +38,7 @@ void Camera::Capture(int32_t target_fps, const cv::Rect& region) {
     timer.Wait();
     const std::optional<cv::Mat> frame = Grab(region);
     if (frame) {
-      std::lock_guard<std::mutex> lock{mutex_};
-      frame_buffer_.AddFrame(frame.value());
-      frame_available_.Set();
+      frame_buffer_.Push(frame.value());
     }
   }
 }
