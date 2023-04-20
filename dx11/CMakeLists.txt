@@ -18,7 +18,6 @@ add_library(${PROJECT_NAME}
         include/dx11/common.h          src/common.cpp
         include/dx11/device.h          src/device.cpp
         include/dx11/duplicator.h      src/duplicator.cpp
-        include/dx11/event.h           src/event.cpp
         include/dx11/frame_buffer.h    src/frame_buffer.cpp
         include/dx11/output.h          src/output.cpp
         include/dx11/surface.h         src/surface.cpp

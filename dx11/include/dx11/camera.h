@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <mutex>
 #include <optional>
@@ -11,7 +12,6 @@
 #include "dx11/common.h"
 #include "dx11/device.h"
 #include "dx11/duplicator.h"
-#include "dx11/event.h"
 #include "dx11/frame_buffer.h"
 #include "dx11/output.h"
 #include "dx11/surface.h"
@@ -48,7 +48,7 @@ class Camera {
   FrameBuffer frame_buffer_;
 
   std::thread capture_thread_{};
-  Event stop_capture_{};
+  std::atomic<bool> stop_capture_{false};
 
   void Capture(int32_t target_fps, const cv::Rect& region);
 

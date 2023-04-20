@@ -23,9 +23,9 @@ void Camera::StartCapture(int32_t target_fps, std::optional<cv::Rect> region) {
 }
 
 void Camera::StopCapture() {
-  stop_capture_.Set();
+  stop_capture_ = true;
   capture_thread_.join();
-  stop_capture_.Clear();
+  stop_capture_ = false;
 }
 
 cv::Mat Camera::GetNewestFrame() {
@@ -34,7 +34,7 @@ cv::Mat Camera::GetNewestFrame() {
 
 void Camera::Capture(int32_t target_fps, const cv::Rect& region) {
   Timer timer{target_fps};
-  while (!stop_capture_.IsSet()) {
+  while (!stop_capture_) {
     timer.Wait();
     const std::optional<cv::Mat> frame = Grab(region);
     if (frame) {
