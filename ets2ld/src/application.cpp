@@ -1,6 +1,7 @@
 #include "ets2ld/application.h"
 
 #include <stdexcept>
+#include <utility>
 
 namespace ets2ld {
 
@@ -17,7 +18,7 @@ Application::Application(Arguments arguments) {
 }
 
 Application::~Application() {
-  stop_lane_detection_.Set();
+  stop_lane_detection_ = true;
   lane_detection_thread_.join();
   capture_.Stop();
 }
@@ -32,17 +33,16 @@ void Application::Run() {
       break;
     }
 
-    if (lane_detection_result_available_.IsSet()) {
-      std::optional<LaneDetectionResult> result{};
+    if (lane_detection_result_available_) {
+      LaneDetectionResult result{};
       {
-        std::lock_guard<std::mutex> lock{lane_detection_result_mutex_};
-        result = lane_detection_result_buffer_.GetNewestResult();
-        lane_detection_result_available_.Clear();
+        std::lock_guard<std::mutex> lock{lane_detection_mutex_};
+        result = std::move(lane_detection_result_);
+        lane_detection_result_available_ = false;
       }
-      if (!result)
-        continue;
+
       cv::Mat preview{};
-      cv::resize(result->preview, preview, {1280, 720});
+      cv::resize(result.preview, preview, {1280, 720});
       cv::imshow("Preview", preview);
       if (cv::waitKey(1) == 27) {  // ESC
         break;
@@ -54,7 +54,7 @@ void Application::Run() {
 }
 
 void Application::LaneDetectionThread() {
-  while (!stop_lane_detection_.IsSet()) {
+  while (!stop_lane_detection_) {
     // TODO What if camera is not valid due to region change etc?
     const cv::Mat frame = camera_->GetNewestFrame();
 
@@ -63,9 +63,9 @@ void Application::LaneDetectionThread() {
     result.lanes = lane_detector_->Detect(frame);
     result.preview = ufld::VisualizeLanes(result.lanes, result.frame);
     {
-      std::lock_guard<std::mutex> lock{lane_detection_result_mutex_};
-      lane_detection_result_buffer_.AddResult(result);
-      lane_detection_result_available_.Set();
+      std::lock_guard<std::mutex> lock{lane_detection_mutex_};
+      lane_detection_result_ = std::move(result);
+      lane_detection_result_available_ = true;
     }
   }
 }

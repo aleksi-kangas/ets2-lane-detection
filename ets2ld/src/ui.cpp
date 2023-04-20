@@ -180,6 +180,7 @@ LRESULT UI::WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
     default:
       return ::DefWindowProc(hwnd, message, wparam, lparam);
   }
+  return ::DefWindowProc(hwnd, message, wparam, lparam);
 }
 
 void UI::BeginFrame() {
