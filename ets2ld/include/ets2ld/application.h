@@ -9,6 +9,7 @@
 #include "ets2ld/arguments.h"
 #include "ets2ld/event.h"
 #include "ets2ld/lane_detection_result_buffer.h"
+#include "ets2ld/ui.h"
 #include "ufld/ufld.h"
 
 namespace ets2ld {
@@ -23,6 +24,7 @@ class Application {
   dx11::Capture capture_{};
   dx11::Camera* camera_{nullptr};  // Owned by capture_, holds current camera
   std::unique_ptr<ufld::ILaneDetector> lane_detector_{nullptr};
+  UI ui_{};
 
   // Threads
   Event stop_lane_detection_{};

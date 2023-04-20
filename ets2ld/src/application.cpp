@@ -28,6 +28,10 @@ void Application::Run() {
 
   // UI loop
   while (true) {
+    if (!ui_.PollEvents()) {
+      break;
+    }
+
     if (lane_detection_result_available_.IsSet()) {
       std::optional<LaneDetectionResult> result{};
       {
@@ -44,6 +48,8 @@ void Application::Run() {
         break;
       }
     }
+
+    ui_.Render();
   }
 }
 
