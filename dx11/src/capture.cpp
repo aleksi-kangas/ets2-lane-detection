@@ -32,7 +32,7 @@ Capture::~Capture() {
 }
 
 Camera* Capture::Start(uint32_t device_index, uint32_t output_index,
-                       std::optional<Region> region) {
+                       std::optional<cv::Rect> region) {
   std::lock_guard<std::mutex> lock{mutex_};
 
   auto Initialize = []() {
@@ -54,8 +54,7 @@ Camera* Capture::Start(uint32_t device_index, uint32_t output_index,
     assert(false);
     return nullptr;
   }
-  if (output_index >=
-      devices_[device_index].DXGIOutputCount()) {
+  if (output_index >= devices_[device_index].DXGIOutputCount()) {
     assert(false);
     return nullptr;
   }

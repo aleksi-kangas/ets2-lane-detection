@@ -5,10 +5,11 @@
 #include <optional>
 #include <vector>
 
+#include <opencv2/opencv.hpp>
+
 #include "dx11/camera.h"
 #include "dx11/common.h"
 #include "dx11/device.h"
-#include "dx11/region.h"
 
 namespace dx11 {
 
@@ -18,7 +19,7 @@ class Capture {
   ~Capture();
 
   Camera* Start(uint32_t device_index, uint32_t output_index,
-                std::optional<Region> region = std::nullopt);
+                std::optional<cv::Rect> region = std::nullopt);
   void Stop();
 
  private:
