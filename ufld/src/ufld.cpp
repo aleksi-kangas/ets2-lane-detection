@@ -42,10 +42,12 @@ void DrawCenterLaneMask(const std::vector<ufld::Lane>& lanes, cv::Mat& image) {
 
 namespace ufld {
 
-void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
+cv::Mat VisualizeLanes(const std::vector<Lane>& lanes, const cv::Mat& image) {
   assert(lanes.size() <= 4);
-  DrawLanePoints(lanes, {false, true, true, false}, image);
-  DrawCenterLaneMask(lanes, image);
+  cv::Mat image_copy = image.clone();
+  DrawLanePoints(lanes, {false, true, true, false}, image_copy);
+  DrawCenterLaneMask(lanes, image_copy);
+  return image_copy;
 }
 
 std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {

@@ -16,7 +16,7 @@ enum class Version { kV1 = 1 };
 
 using Lane = std::vector<cv::Point>;
 
-void VisualizeLanes(const std::vector<Lane>& lanes, cv::Mat& image);
+cv::Mat VisualizeLanes(const std::vector<Lane>& lanes, const cv::Mat& image);
 
 class ILaneDetector {
  public:
