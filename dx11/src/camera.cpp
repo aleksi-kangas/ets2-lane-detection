@@ -29,7 +29,17 @@ void Camera::StopCapture() {
   stop_capture_.Clear();
 }
 
-cv::Mat Camera::GetLatestFrame() {
+std::optional<cv::Mat> Camera::GetLatestFrame() {
+  if (!frame_available_.IsSet()) {
+    return std::nullopt;
+  }
+  std::lock_guard<std::mutex> lock{mutex_};
+  const auto frame = frame_buffer_.GetNewestFrame();
+  frame_available_.Clear();
+  return frame;
+}
+
+cv::Mat Camera::GetLatestFrameWait() {
   frame_available_.Wait();
   std::lock_guard<std::mutex> lock{mutex_};
   const auto frame = frame_buffer_.GetNewestFrame();

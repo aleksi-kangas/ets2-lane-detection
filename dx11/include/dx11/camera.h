@@ -36,7 +36,8 @@ class Camera {
 
   void StopCapture();
 
-  [[nodiscard]] cv::Mat GetLatestFrame();
+  [[nodiscard]] std::optional<cv::Mat> GetLatestFrame();
+  [[nodiscard]] cv::Mat GetLatestFrameWait();
 
  private:
   Device& device_;
