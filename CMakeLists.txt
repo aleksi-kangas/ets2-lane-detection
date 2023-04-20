@@ -17,13 +17,12 @@ endif ()
 find_package(OpenCV REQUIRED)
 
 add_subdirectory(dx11)
+add_subdirectory(ets2ld)
 add_subdirectory(ufld)
 
-add_executable(${PROJECT_NAME}
-        arguments.h arguments.cpp
-        main.cpp)
+add_executable(${PROJECT_NAME} main.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE dx11 ufld ${OpenCV_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE dx11 ets2ld ufld ${OpenCV_LIBRARIES})
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
