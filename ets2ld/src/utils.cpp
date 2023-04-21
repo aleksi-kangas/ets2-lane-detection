@@ -1,7 +1,11 @@
 #include "ets2ld/utils.h"
 
 #include <array>
+#include <cmath>
+#include <numbers>
 #include <stdexcept>
+
+#include <imgui_internal.h>
 
 namespace ets2ld::utils {
 std::tuple<CComPtr<ID3D11Device>, CComPtr<IDXGISwapChain>,
@@ -61,3 +65,53 @@ CComPtr<ID3D11RenderTargetView> CreateRenderTargetView(
 }
 
 }  // namespace ets2ld::utils
+
+namespace ImGui {
+void Spinner(const char* label, float radius, float thickness,
+             const ImU32& color) {
+  ImGuiWindow* window = GetCurrentWindow();
+  if (window->SkipItems)
+    return;
+
+  const ImGuiContext& g = *GImGui;
+  const ImGuiStyle& style = g.Style;
+  const ImGuiID id = window->GetID(label);
+
+  const ImVec2 pos = window->DC.CursorPos;
+  const ImVec2 size{radius * 2, (radius + style.FramePadding.y) * 2};
+
+  const ImRect bb{pos, ImVec2(pos.x + size.x, pos.y + size.y)};
+  ItemSize(bb, style.FramePadding.y);
+  if (!ItemAdd(bb, id))
+    return;
+
+  // Render
+  window->DrawList->PathClear();
+
+  constexpr int32_t num_segments = 30;
+  const auto start = static_cast<int32_t>(
+      std::abs(std::sinf(static_cast<float>(g.Time) * 1.8f) *
+               static_cast<float>((num_segments - 5))));
+
+  const float a_min = std::numbers::pi_v<float> * 2.0f *
+                      static_cast<float>(start) /
+                      static_cast<float>(num_segments);
+  const float a_max = std::numbers::pi_v<float> * 2.0f *
+                      static_cast<float>(num_segments - 3) /
+                      static_cast<float>(num_segments);
+
+  const ImVec2 centre{pos.x + radius, pos.y + radius + style.FramePadding.y};
+
+  for (int32_t i = 0; i < num_segments; i++) {
+    const float a =
+        a_min + (static_cast<float>(i) / static_cast<float>(num_segments)) *
+                    (a_max - a_min);
+    window->DrawList->PathLineTo(
+        {centre.x + std::cosf(a + static_cast<float>(g.Time) * 8.0f) * radius,
+         centre.y + std::sinf(a + static_cast<float>(g.Time) * 8.0f) * radius});
+  }
+
+  window->DrawList->PathStroke(color, false, thickness);
+}
+
+}  // namespace ImGui
