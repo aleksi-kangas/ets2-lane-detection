@@ -5,10 +5,12 @@
 #include <dxgi.h>
 #include <imgui.h>
 
+#include "ets2ld/settings.h"
+
 namespace ets2ld {
 class UI {
  public:
-  UI();
+  explicit UI(Settings& settings);
   ~UI();
 
   UI(const UI&) = delete;
@@ -16,10 +18,16 @@ class UI {
   UI(UI&&) = delete;
   UI& operator=(UI&&) = delete;
 
-  [[nodiscard]] bool PollEvents();
-  void Render();
+  [[nodiscard]] bool BeginFrame();
+
+  void RenderSettings(bool lane_detection_enabled, bool is_initializing);
+  void RenderPreview(bool is_initializing);
+
+  void EndFrame();
 
  private:
+  Settings& settings_;
+
   WNDCLASSEXW wc_{};
   HWND hwnd_{nullptr};
   CComPtr<ID3D11Device> device_{nullptr};
@@ -33,7 +41,6 @@ class UI {
                                          LPARAM lparam);
   LRESULT WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
-  void BeginFrame();
-  void EndFrame();
+  [[nodiscard]] bool PollEvents();
 };
 }  // namespace ets2ld

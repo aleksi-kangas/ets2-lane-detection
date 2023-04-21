@@ -7,23 +7,29 @@
 
 #include "dx11/capture.h"
 #include "dx11/common.h"
-#include "ets2ld/arguments.h"
+#include "ets2ld/settings.h"
 #include "ets2ld/ui.h"
 #include "ufld/ufld.h"
 
 namespace ets2ld {
 class Application {
  public:
-  explicit Application(Arguments  arguments);
+  explicit Application(Settings settings);
   ~Application();
 
   void Run();
 
  private:
-  Arguments arguments_;
-  UI ui_{};
+  Settings settings_;
+  UI ui_{settings_};
+
+  // Capture
   dx11::Capture capture_{};
   dx11::Camera* camera_{nullptr};  // Owned by capture_, holds current camera
+
+  // Lane Detection
+  bool lane_detection_enabled_{false};
+  std::atomic<bool> lane_detection_initializing_{false};
   std::unique_ptr<ufld::ILaneDetector> lane_detector_{nullptr};
 
   // Threads
@@ -40,6 +46,8 @@ class Application {
   std::mutex lane_detection_mutex_{};
 
   void LaneDetectionThread();
+
+  void HandleChangeInLaneDetectionEnabled();
 };
 
 }  // namespace ets2ld

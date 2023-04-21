@@ -48,6 +48,18 @@ CreateDeviceAndSwapChain(HWND hwnd) {
   return {device, swap_chain, device_context};
 }
 
+std::unique_ptr<ufld::ILaneDetector> CreateLaneDetector(
+    const std::filesystem::path& model_directory,
+    std::variant<ufld::v1::ModelType> variant, ufld::Version version) {
+  switch (version) {
+    case ufld::Version::kV1:
+      return std::make_unique<ufld::v1::LaneDetector>(
+          model_directory, std::get<ufld::v1::ModelType>(variant));
+    default:
+      throw std::runtime_error{"Unsupported version"};
+  }
+}
+
 CComPtr<ID3D11RenderTargetView> CreateRenderTargetView(
     ID3D11Device* device, IDXGISwapChain* swap_chain) {
   CComPtr<ID3D11Texture2D> back_buffer;

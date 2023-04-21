@@ -1,6 +1,7 @@
 #include "ets2ld/ui.h"
 
 #include <array>
+#include <cassert>
 #include <stdexcept>
 
 #include <imgui_impl_dx11.h>
@@ -15,7 +16,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
 
 namespace ets2ld {
 
-UI::UI() {
+UI::UI(Settings& settings) : settings_{settings} {
   CreateUIWindow();
 
   auto [device, swap_chain, device_context] =
@@ -45,26 +46,76 @@ UI::~UI() {
   ::UnregisterClassW(wc_.lpszClassName, wc_.hInstance);
 }
 
-bool UI::PollEvents() {
-  MSG msg;
-  while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-    ::TranslateMessage(&msg);
-    ::DispatchMessage(&msg);
-    if (msg.message == WM_QUIT) {
-      return false;
-    }
-  }
+bool UI::BeginFrame() {
+  if (!PollEvents())
+    return false;
+
+  ImGui_ImplDX11_NewFrame();
+  ImGui_ImplWin32_NewFrame();
+  ImGui::NewFrame();
   return true;
 }
 
-void UI::Render() {
-  BeginFrame();
+void UI::RenderSettings(bool lane_detection_enabled, bool is_initializing) {
+  ImGui::Begin("Settings");
+  {
+    ImGui::SeparatorText("General");
+    ImGui::BeginDisabled(is_initializing);
+    { ImGui::Checkbox("Enable", &settings_.enable_lane_detection); }
+    ImGui::EndDisabled();
 
-  ImGui::Begin("ETS2 Lane Detection");
-  ImGui::Text("Hello, world!");
+    ImGui::SeparatorText("Model");
+    ImGui::BeginDisabled(lane_detection_enabled);
+    {
+      ImGui::Text("Ultra-Fast-Lane-Detection");
+      const char* kModelVariantComboItems[] = {"CULane", "TuSimple"};
+      static int chosen_model_variant = 0;
+      ImGui::Combo("Variant", &chosen_model_variant,
+                   kModelVariantComboItems,
+                   IM_ARRAYSIZE(kModelVariantComboItems));
+      // TODO Think about this
+      switch (chosen_model_variant) {
+        case 0:
+          settings_.model.variant = ufld::v1::ModelType::kCULane;
+          break;
+        case 1:
+          settings_.model.variant = ufld::v1::ModelType::kTuSimple;
+          break;
+        default:
+          assert(false);
+      }
+    }
+    ImGui::EndDisabled();
+
+    ImGui::SeparatorText("Capture");
+    ImGui::Text("TODO: Capture Settings");
+  }
   ImGui::End();
+}
 
-  EndFrame();
+void UI::RenderPreview(bool is_initializing) {
+  ImGui::Begin("Preview");
+  {
+    if (is_initializing) {
+      ImGui::Spinner("InitializingSpinner", 10, 2,
+                     ImGui::GetColorU32(ImGuiCol_Text));
+      ImGui::SameLine();
+      ImGui::Text("Initializing OnnxRuntime and loading model...");
+    } else {
+      ImGui::Text("TODO PREVIEW");
+    }
+  }
+  ImGui::End();
+}
+
+void UI::EndFrame() {
+  ImGui::Render();
+  device_context_->OMSetRenderTargets(1, &render_target_view_.p, nullptr);
+  constexpr auto kClearColor = std::array<float, 4>{0.45f, 0.55f, 0.60f, 1.00f};
+  device_context_->ClearRenderTargetView(render_target_view_,
+                                         kClearColor.data());
+  ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+  swap_chain_->Present(1, 0);  // VSYNC
 }
 
 void UI::CreateUIWindow() {
@@ -126,20 +177,16 @@ LRESULT UI::WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
   return ::DefWindowProc(hwnd, message, wparam, lparam);
 }
 
-void UI::BeginFrame() {
-  ImGui_ImplDX11_NewFrame();
-  ImGui_ImplWin32_NewFrame();
-  ImGui::NewFrame();
-}
-
-void UI::EndFrame() {
-  ImGui::Render();
-  device_context_->OMSetRenderTargets(1, &render_target_view_.p, nullptr);
-  constexpr auto kClearColor = std::array<float, 4>{0.45f, 0.55f, 0.60f, 1.00f};
-  device_context_->ClearRenderTargetView(render_target_view_,
-                                         kClearColor.data());
-  ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-  swap_chain_->Present(1, 0);  // VSYNC
+bool UI::PollEvents() {
+  MSG msg;
+  while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+    ::TranslateMessage(&msg);
+    ::DispatchMessage(&msg);
+    if (msg.message == WM_QUIT) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace ets2ld
