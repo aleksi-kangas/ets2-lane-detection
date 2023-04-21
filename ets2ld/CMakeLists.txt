@@ -11,7 +11,8 @@ find_package(OpenCV REQUIRED)
 add_library(${PROJECT_NAME}
         include/ets2ld/arguments.h                      src/arguments.cpp
         include/ets2ld/application.h                    src/application.cpp
-        include/ets2ld/ui.h                             src/ui.cpp)
+        include/ets2ld/ui.h                             src/ui.cpp
+        include/ets2ld/utils.h                          src/utils.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC include ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} imgui::imgui dx11 ufld)
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)

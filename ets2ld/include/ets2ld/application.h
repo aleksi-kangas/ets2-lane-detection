@@ -14,16 +14,17 @@
 namespace ets2ld {
 class Application {
  public:
-  explicit Application(Arguments arguments);
+  explicit Application(Arguments  arguments);
   ~Application();
 
   void Run();
 
  private:
+  Arguments arguments_;
+  UI ui_{};
   dx11::Capture capture_{};
   dx11::Camera* camera_{nullptr};  // Owned by capture_, holds current camera
   std::unique_ptr<ufld::ILaneDetector> lane_detector_{nullptr};
-  UI ui_{};
 
   // Threads
   std::atomic<bool> stop_lane_detection_{false};

@@ -1,21 +1,10 @@
 #include "ets2ld/application.h"
 
-#include <stdexcept>
 #include <utility>
 
 namespace ets2ld {
 
-Application::Application(Arguments arguments) {
-  switch (arguments.version) {
-    case ufld::Version::kV1:
-      lane_detector_ = std::make_unique<ufld::v1::LaneDetector>(
-          arguments.model_directory,
-          std::get<ufld::v1::ModelType>(arguments.model_type));
-      break;
-    default:
-      throw std::invalid_argument{"Invalid model version."};
-  }
-}
+Application::Application(Arguments  arguments) : arguments_{std::move(arguments)} {}
 
 Application::~Application() {
   stop_lane_detection_ = true;
@@ -27,7 +16,6 @@ void Application::Run() {
   camera_ = capture_.Start(0, 0, 1);
   lane_detection_thread_ = std::thread{&Application::LaneDetectionThread, this};
 
-  // UI loop
   while (true) {
     if (!ui_.PollEvents()) {
       break;
