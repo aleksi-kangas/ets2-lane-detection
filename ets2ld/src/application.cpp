@@ -1,6 +1,7 @@
 #include "ets2ld/application.h"
 
 #include <cassert>
+#include <iostream>
 #include <utility>
 
 #include "dx11/capture.h"
@@ -65,8 +66,15 @@ void Application::HandleLaneDetectionEnableChanged() {
         auto InitializeAndStartLaneDetector =
             [&](const ModelSettings& settings) {
               lane_detection_initializing_ = true;
-              lane_detector_ = utils::CreateLaneDetector(
-                  settings.directory, settings.variant, settings.version);
+              try {
+                lane_detector_ = utils::CreateLaneDetector(
+                    settings.directory, settings.variant, settings.version);
+              } catch (const std::exception& e) {
+                // TODO Proper error alert to the UI
+                std::cerr << e.what() << std::endl;
+                lane_detection_initializing_ = false;
+                return;
+              }
               lane_detection_initializing_ = false;
               lane_detection_active_ = true;
               lane_detection_thread_ =
@@ -88,8 +96,15 @@ void Application::HandleModelSettingsChanged() {
   assert(!lane_detection_active_);
   auto InitializeLaneDetector = [&](const ModelSettings& settings) {
     lane_detection_initializing_ = true;
-    lane_detector_ = utils::CreateLaneDetector(
-        settings.directory, settings.variant, settings.version);
+    try {
+      lane_detector_ = utils::CreateLaneDetector(
+          settings.directory, settings.variant, settings.version);
+    } catch (const std::exception& e) {
+      // TODO Proper error alert to the UI
+      std::cerr << e.what() << std::endl;
+      lane_detection_initializing_ = false;
+      return;
+    }
     lane_detection_initializing_ = false;
   };
   std::thread{InitializeLaneDetector, settings_.model}.detach();
