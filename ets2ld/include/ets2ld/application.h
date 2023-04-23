@@ -5,7 +5,6 @@
 #include <mutex>
 #include <thread>
 
-#include "dx11/capture.h"
 #include "dx11/common.h"
 #include "ets2ld/settings.h"
 #include "ets2ld/ui.h"
@@ -23,17 +22,10 @@ class Application {
   Settings settings_;
   UI ui_{settings_};
 
-  // Capture
-  dx11::Capture capture_{};
-  dx11::Camera* camera_{nullptr};  // Owned by capture_, holds current camera
-
-  // Lane Detection
-  bool lane_detection_enabled_{false};
-  std::atomic<bool> lane_detection_initializing_{false};
   std::unique_ptr<ufld::ILaneDetector> lane_detector_{nullptr};
-
-  // Threads
-  std::atomic<bool> stop_lane_detection_{false};
+  std::atomic<bool> lane_detection_initializing_{false};
+  std::atomic<bool> lane_detection_active_{false};
+  std::atomic<bool> stop_lane_detection_signal_{false};
   std::thread lane_detection_thread_{};
 
   struct LaneDetectionResult {
@@ -47,7 +39,8 @@ class Application {
 
   void LaneDetectionThread();
 
-  void HandleChangeInLaneDetectionEnabled();
+  void HandleLaneDetectionEnableChanged();
+  void HandleModelSettingsChanged();
 };
 
 }  // namespace ets2ld

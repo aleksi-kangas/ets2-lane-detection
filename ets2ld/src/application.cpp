@@ -1,7 +1,9 @@
 #include "ets2ld/application.h"
 
+#include <cassert>
 #include <utility>
 
+#include "dx11/capture.h"
 #include "ets2ld/utils.h"
 
 namespace ets2ld {
@@ -9,25 +11,24 @@ namespace ets2ld {
 Application::Application(Settings settings) : settings_{std::move(settings)} {}
 
 Application::~Application() {
-  stop_lane_detection_ = true;
+  stop_lane_detection_signal_ = true;
   if (lane_detection_thread_.joinable()) {
     lane_detection_thread_.join();
   }
-  capture_.Stop();
 }
 
 void Application::Run() {
-  camera_ = capture_.Start(0, 0, 1);
+  ui_.SetOnLaneDetectionEnableChanged(
+      [this]() { HandleLaneDetectionEnableChanged(); });
+  ui_.SetOnModelSettingsChanged([this]() { HandleModelSettingsChanged(); });
 
   while (true) {
-    HandleChangeInLaneDetectionEnabled();
-
     if (!ui_.BeginFrame())
       break;
 
-    ui_.RenderSettings(lane_detection_enabled_, lane_detection_initializing_);
+    ui_.RenderSettings(lane_detection_active_, lane_detection_initializing_);
 
-    if (lane_detection_enabled_) {
+    if (lane_detection_active_) {
       // TODO Update preview image by using LaneDetectionResult
 
       ui_.RenderPreview(lane_detection_initializing_);
@@ -38,9 +39,11 @@ void Application::Run() {
 }
 
 void Application::LaneDetectionThread() {
-  while (!stop_lane_detection_) {
-    // TODO What if camera is not valid due to region change etc?
-    const cv::Mat frame = camera_->GetNewestFrame();
+  dx11::Capture capture{};
+  auto camera = capture.Start(0, 0, 1);
+
+  while (!stop_lane_detection_signal_) {
+    const cv::Mat frame = camera->GetNewestFrame();
 
     LaneDetectionResult result{};
     result.frame = frame;
@@ -54,25 +57,42 @@ void Application::LaneDetectionThread() {
   }
 }
 
-void Application::HandleChangeInLaneDetectionEnabled() {
-  if (settings_.enable_lane_detection != lane_detection_enabled_) {
-    lane_detection_enabled_ = settings_.enable_lane_detection;
-    if (lane_detection_enabled_) {
-      lane_detection_initializing_ = true;
-      std::thread{[&] {
-        lane_detector_ = utils::CreateLaneDetector(settings_.model.directory,
-                                                   settings_.model.variant,
-                                                   settings_.model.version);
+void Application::HandleLaneDetectionEnableChanged() {
+  if (settings_.enable_lane_detection != lane_detection_active_) {
+    lane_detection_active_ = settings_.enable_lane_detection;
+    if (lane_detection_active_) {
+      if (lane_detector_ == nullptr) {
+        auto InitializeAndStartLaneDetector =
+            [&](const ModelSettings& settings) {
+              lane_detection_initializing_ = true;
+              lane_detector_ = utils::CreateLaneDetector(
+                  settings.directory, settings.variant, settings.version);
+              lane_detection_initializing_ = false;
+              lane_detection_active_ = true;
+              lane_detection_thread_ =
+                  std::thread{&Application::LaneDetectionThread, this};
+            };
+        std::thread{InitializeAndStartLaneDetector, settings_.model}.detach();
+      } else {
         lane_detection_thread_ =
             std::thread{&Application::LaneDetectionThread, this};
-        lane_detection_initializing_ = false;
-      }}.detach();
+      }
     } else {
-      stop_lane_detection_ = true;
+      stop_lane_detection_signal_ = true;
       lane_detection_thread_.join();
-      lane_detector_ = nullptr;
     }
   }
+}
+
+void Application::HandleModelSettingsChanged() {
+  assert(!lane_detection_active_);
+  auto InitializeLaneDetector = [&](const ModelSettings& settings) {
+    lane_detection_initializing_ = true;
+    lane_detector_ = utils::CreateLaneDetector(
+        settings.directory, settings.variant, settings.version);
+    lane_detection_initializing_ = false;
+  };
+  std::thread{InitializeLaneDetector, settings_.model}.detach();
 }
 
 }  // namespace ets2ld

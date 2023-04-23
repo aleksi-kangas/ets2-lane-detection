@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include <utility>
 
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
@@ -56,33 +57,49 @@ bool UI::BeginFrame() {
   return true;
 }
 
-void UI::RenderSettings(bool lane_detection_enabled, bool is_initializing) {
+void UI::RenderSettings(bool lane_detection_active,
+                        bool lane_detection_initializing) {
   ImGui::Begin("Settings");
   {
     ImGui::SeparatorText("General");
-    ImGui::BeginDisabled(is_initializing);
-    { ImGui::Checkbox("Enable", &settings_.enable_lane_detection); }
+    ImGui::BeginDisabled(lane_detection_initializing);
+    {
+      if (ImGui::Checkbox("Enable", &settings_.enable_lane_detection)) {
+        if (on_lane_detection_enable_changed_)
+          on_lane_detection_enable_changed_();
+      }
+    }
     ImGui::EndDisabled();
 
     ImGui::SeparatorText("Model");
-    ImGui::BeginDisabled(lane_detection_enabled);
+    ImGui::BeginDisabled(lane_detection_active || lane_detection_initializing);
     {
       ImGui::Text("Ultra-Fast-Lane-Detection");
       const char* kModelVariantComboItems[] = {"CULane", "TuSimple"};
       static int chosen_model_variant = 0;
-      ImGui::Combo("Variant", &chosen_model_variant,
-                   kModelVariantComboItems,
+      ImGui::Combo("Variant", &chosen_model_variant, kModelVariantComboItems,
                    IM_ARRAYSIZE(kModelVariantComboItems));
-      // TODO Think about this
-      switch (chosen_model_variant) {
-        case 0:
-          settings_.model.variant = ufld::v1::ModelType::kCULane;
-          break;
-        case 1:
-          settings_.model.variant = ufld::v1::ModelType::kTuSimple;
-          break;
-        default:
-          assert(false);
+      if (ImGui::Button("Apply")) {
+        // TODO Abstract this?
+        switch (chosen_model_variant) {
+          case 0:
+            assert(0 == static_cast<int32_t>(ufld::v1::ModelType::kCULane));
+            settings_.model.variant = ufld::v1::ModelType::kCULane;
+            break;
+          case 1:
+            assert(1 == static_cast<int32_t>(ufld::v1::ModelType::kTuSimple));
+            settings_.model.variant = ufld::v1::ModelType::kTuSimple;
+            break;
+          default:
+            assert(false);
+        }
+        if (on_model_settings_changed_)
+          on_model_settings_changed_();
+      }
+      if (lane_detection_initializing) {
+        ImGui::SameLine();
+        ImGui::Spinner("InitializingSpinner", 10, 2,
+                       ImGui::GetColorU32(ImGuiCol_Text));
       }
     }
     ImGui::EndDisabled();
@@ -93,10 +110,10 @@ void UI::RenderSettings(bool lane_detection_enabled, bool is_initializing) {
   ImGui::End();
 }
 
-void UI::RenderPreview(bool is_initializing) {
+void UI::RenderPreview(bool lane_detection_initializing) {
   ImGui::Begin("Preview");
   {
-    if (is_initializing) {
+    if (lane_detection_initializing) {
       ImGui::Spinner("InitializingSpinner", 10, 2,
                      ImGui::GetColorU32(ImGuiCol_Text));
       ImGui::SameLine();
@@ -116,6 +133,14 @@ void UI::EndFrame() {
                                          kClearColor.data());
   ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
   swap_chain_->Present(1, 0);  // VSYNC
+}
+
+void UI::SetOnLaneDetectionEnableChanged(std::function<void()> callback) {
+  on_lane_detection_enable_changed_ = std::move(callback);
+}
+
+void UI::SetOnModelSettingsChanged(std::function<void()> callback) {
+  on_model_settings_changed_ = std::move(callback);
 }
 
 void UI::CreateUIWindow() {
