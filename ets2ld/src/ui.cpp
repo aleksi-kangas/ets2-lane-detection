@@ -147,10 +147,10 @@ void UI::CreateUIWindow() {
   wc_.cbSize = sizeof(wc_);
   wc_.style = CS_CLASSDC;
   wc_.lpfnWndProc = WndProcWrapper;
-  wc_.hInstance = ::GetModuleHandle(nullptr);
+  wc_.hInstance = ::GetModuleHandleW(nullptr);
   wc_.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
   wc_.lpszClassName = L"ETS2 Lane Detection";
-  RegisterClassExW(&wc_);
+  ::RegisterClassExW(&wc_);
 
   hwnd_ = CreateWindowExW(0, wc_.lpszClassName, wc_.lpszClassName,
                           WS_OVERLAPPEDWINDOW, 300, 300, 1280, 720, nullptr,
@@ -164,14 +164,14 @@ LRESULT UI::WndProcWrapper(HWND hwnd, UINT message, WPARAM wparam,
                            LPARAM lparam) {
   if (message == WM_NCCREATE) {
     auto cs = reinterpret_cast<CREATESTRUCT*>(lparam);
-    ::SetWindowLongPtr(hwnd, GWLP_USERDATA,
-                       reinterpret_cast<LONG_PTR>(cs->lpCreateParams));
+    ::SetWindowLongPtrW(hwnd, GWLP_USERDATA,
+                        reinterpret_cast<LONG_PTR>(cs->lpCreateParams));
   }
-  auto ui = reinterpret_cast<UI*>(::GetWindowLongPtr(hwnd, GWLP_USERDATA));
+  auto ui = reinterpret_cast<UI*>(::GetWindowLongPtrW(hwnd, GWLP_USERDATA));
   if (ui) {
     return ui->WndProc(hwnd, message, wparam, lparam);
   }
-  return ::DefWindowProc(hwnd, message, wparam, lparam);
+  return ::DefWindowProcW(hwnd, message, wparam, lparam);
 }
 
 LRESULT UI::WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
@@ -197,16 +197,16 @@ LRESULT UI::WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
         return 0;
     } break;
     default:
-      return ::DefWindowProc(hwnd, message, wparam, lparam);
+      return ::DefWindowProcW(hwnd, message, wparam, lparam);
   }
-  return ::DefWindowProc(hwnd, message, wparam, lparam);
+  return ::DefWindowProcW(hwnd, message, wparam, lparam);
 }
 
 bool UI::PollEvents() {
   MSG msg;
-  while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+  while (::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
     ::TranslateMessage(&msg);
-    ::DispatchMessage(&msg);
+    ::DispatchMessageW(&msg);
     if (msg.message == WM_QUIT) {
       return false;
     }
