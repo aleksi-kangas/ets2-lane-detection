@@ -75,7 +75,6 @@ cv::Mat ILaneDetector::ColorPreprocess(const cv::Mat& image) {
 
 void ILaneDetector::InitializeSession(const std::filesystem::path& model_path) {
   if (!std::filesystem::exists(model_path)) {
-    std::cerr << "Model file not found: " << model_path << std::endl;
     throw std::invalid_argument{"Model file not found"};
   }
 
