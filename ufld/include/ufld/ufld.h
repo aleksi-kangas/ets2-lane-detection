@@ -12,7 +12,7 @@
 
 namespace ufld {
 
-enum class Version { kV1 = 1 };
+enum class Version { kV1 };
 
 using Lane = std::vector<cv::Point>;
 
