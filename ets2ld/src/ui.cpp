@@ -9,6 +9,8 @@
 #include <imgui_impl_win32.h>
 
 #include "ets2ld/utils.h"
+#include "ufld/ufld.h"
+#include "ufld/v1.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
                                                              UINT msg,
@@ -61,51 +63,9 @@ void UI::RenderSettings(bool lane_detection_active,
                         bool lane_detection_initializing) {
   ImGui::Begin("Settings");
   {
-    ImGui::SeparatorText("General");
-    ImGui::BeginDisabled(lane_detection_initializing);
-    {
-      if (ImGui::Checkbox("Enable", &settings_.enable_lane_detection)) {
-        if (on_lane_detection_enable_changed_)
-          on_lane_detection_enable_changed_();
-      }
-    }
-    ImGui::EndDisabled();
-
-    ImGui::SeparatorText("Model");
-    ImGui::BeginDisabled(lane_detection_active || lane_detection_initializing);
-    {
-      ImGui::Text("Ultra-Fast-Lane-Detection");
-      const char* kModelVariantComboItems[] = {"CULane", "TuSimple"};
-      static int chosen_model_variant = 0;
-      ImGui::Combo("Variant", &chosen_model_variant, kModelVariantComboItems,
-                   IM_ARRAYSIZE(kModelVariantComboItems));
-      if (ImGui::Button("Apply")) {
-        // TODO Abstract this?
-        switch (chosen_model_variant) {
-          case 0:
-            assert(0 == static_cast<int32_t>(ufld::v1::ModelType::kCULane));
-            settings_.model.variant = ufld::v1::ModelType::kCULane;
-            break;
-          case 1:
-            assert(1 == static_cast<int32_t>(ufld::v1::ModelType::kTuSimple));
-            settings_.model.variant = ufld::v1::ModelType::kTuSimple;
-            break;
-          default:
-            assert(false);
-        }
-        if (on_model_settings_changed_)
-          on_model_settings_changed_();
-      }
-      if (lane_detection_initializing) {
-        ImGui::SameLine();
-        ImGui::Spinner("InitializingSpinner", 10, 2,
-                       ImGui::GetColorU32(ImGuiCol_Text));
-      }
-    }
-    ImGui::EndDisabled();
-
-    ImGui::SeparatorText("Capture");
-    ImGui::Text("TODO: Capture Settings");
+    RenderSettingsGeneral(lane_detection_initializing);
+    RenderSettingsModel(lane_detection_active, lane_detection_initializing);
+    RenderSettingsCapture();
   }
   ImGui::End();
 }
@@ -212,6 +172,87 @@ bool UI::PollEvents() {
     }
   }
   return true;
+}
+
+void UI::RenderSettingsGeneral(bool lane_detection_initializing) {
+  ImGui::SeparatorText("General");
+  ImGui::BeginDisabled(lane_detection_initializing);
+  {
+    if (ImGui::Checkbox("Enable", &settings_.enable_lane_detection)) {
+      if (on_lane_detection_enable_changed_)
+        on_lane_detection_enable_changed_();
+    }
+  }
+  ImGui::EndDisabled();
+}
+
+void UI::RenderSettingsModel(bool lane_detection_active,
+                             bool lane_detection_initializing) {
+  ImGui::SeparatorText("Model");
+  ImGui::BeginDisabled(lane_detection_active || lane_detection_initializing);
+  {
+    ImGui::Text("Ultra-Fast-Lane-Detection");
+    static constexpr std::array<const char*, 1> kModelVersionComboItems = {
+        "V1"};
+    static int chosen_model_version = 0;
+    ImGui::Combo("Version", &chosen_model_version,
+                 kModelVersionComboItems.data(),
+                 static_cast<int32_t>(kModelVersionComboItems.size()));
+
+    static constexpr std::array<const char*, 2> kModelVariantComboItemsV1 = {
+        "CULane", "TuSimple"};
+    static int chosen_model_variant_v1 = 0;
+
+    switch (chosen_model_version) {
+      case 0:
+        static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
+        ImGui::Combo("Variant", &chosen_model_variant_v1,
+                     kModelVariantComboItemsV1.data(),
+                     kModelVariantComboItemsV1.size());
+        break;
+      default:
+        assert(false);
+    }
+
+    if (ImGui::Button("Apply")) {
+      switch (chosen_model_version) {
+        case 0:
+          static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
+          settings_.model.version = ufld::Version::kV1;
+          switch (chosen_model_variant_v1) {
+            case 0:
+              static_assert(0 ==
+                            static_cast<int32_t>(ufld::v1::ModelType::kCULane));
+              settings_.model.variant = ufld::v1::ModelType::kCULane;
+              break;
+            case 1:
+              static_assert(
+                  1 == static_cast<int32_t>(ufld::v1::ModelType::kTuSimple));
+              settings_.model.variant = ufld::v1::ModelType::kTuSimple;
+              break;
+            default:
+              assert(false);
+          }
+          break;
+        default:
+          assert(false);
+      }
+
+      if (on_model_settings_changed_)
+        on_model_settings_changed_();
+    }
+    if (lane_detection_initializing) {
+      ImGui::SameLine();
+      ImGui::Spinner("InitializingSpinner", 10, 2,
+                     ImGui::GetColorU32(ImGuiCol_Text));
+    }
+  }
+  ImGui::EndDisabled();
+}
+
+void UI::RenderSettingsCapture() {
+  ImGui::SeparatorText("Capture");
+  ImGui::Text("TODO: Capture Settings");
 }
 
 }  // namespace ets2ld

@@ -22,7 +22,8 @@ class UI {
 
   [[nodiscard]] bool BeginFrame();
 
-  void RenderSettings(bool lane_detection_active, bool lane_detection_initializing);
+  void RenderSettings(bool lane_detection_active,
+                      bool lane_detection_initializing);
   void RenderPreview(bool lane_detection_initializing);
 
   void EndFrame();
@@ -51,5 +52,9 @@ class UI {
   LRESULT WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
   [[nodiscard]] bool PollEvents();
+
+  void RenderSettingsGeneral(bool lane_detection_initializing);
+  void RenderSettingsModel(bool lane_detection_active, bool lane_detection_initializing);
+  void RenderSettingsCapture();
 };
 }  // namespace ets2ld
