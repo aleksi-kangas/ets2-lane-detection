@@ -1,7 +1,6 @@
 #include "ets2ld/application.h"
 
 #include <cassert>
-#include <iostream>
 #include <utility>
 
 #include "dx11/capture.h"
@@ -70,8 +69,7 @@ void Application::HandleLaneDetectionEnableChanged() {
                 lane_detector_ = utils::CreateLaneDetector(
                     settings.directory, settings.variant, settings.version);
               } catch (const std::exception& e) {
-                // TODO Proper error alert to the UI
-                std::cerr << e.what() << std::endl;
+                ui_.ShowErrorMessage(e.what());
                 lane_detection_initializing_ = false;
                 return;
               }
@@ -100,8 +98,7 @@ void Application::HandleModelSettingsChanged() {
       lane_detector_ = utils::CreateLaneDetector(
           settings.directory, settings.variant, settings.version);
     } catch (const std::exception& e) {
-      // TODO Proper error alert to the UI
-      std::cerr << e.what() << std::endl;
+      ui_.ShowErrorMessage(e.what());
       lane_detection_initializing_ = false;
       return;
     }

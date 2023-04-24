@@ -103,6 +103,10 @@ void UI::SetOnModelSettingsChanged(std::function<void()> callback) {
   on_model_settings_changed_ = std::move(callback);
 }
 
+void UI::ShowErrorMessage(const std::string& message) {
+  ::MessageBox(hwnd_, message.c_str(), "Error", MB_ICONERROR);
+}
+
 void UI::CreateUIWindow() {
   wc_.cbSize = sizeof(wc_);
   wc_.style = CS_CLASSDC;

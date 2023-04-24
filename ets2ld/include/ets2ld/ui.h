@@ -1,11 +1,14 @@
 #pragma once
 
 #include <functional>
+#include <string>
 
 #include <atlbase.h>
 #include <d3d11.h>
 #include <dxgi.h>
 #include <imgui.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 #include "ets2ld/settings.h"
 
@@ -30,6 +33,8 @@ class UI {
 
   void SetOnLaneDetectionEnableChanged(std::function<void()> callback);
   void SetOnModelSettingsChanged(std::function<void()> callback);
+
+  void ShowErrorMessage(const std::string& message);
 
  private:
   Settings& settings_;
