@@ -13,13 +13,18 @@
 namespace ets2ld {
 class Application {
  public:
-  explicit Application(Settings settings);
+  Application() = default;
   ~Application();
+
+  Application(const Application&) = delete;
+  Application& operator=(const Application&) = delete;
+  Application(Application&&) = delete;
+  Application& operator=(Application&&) = delete;
 
   void Run();
 
  private:
-  Settings settings_;
+  Settings settings_{};
   UI ui_{settings_};
 
   std::unique_ptr<ufld::ILaneDetector> lane_detector_{nullptr};

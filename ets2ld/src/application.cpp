@@ -7,9 +7,6 @@
 #include "ets2ld/utils.h"
 
 namespace ets2ld {
-
-Application::Application(Settings settings) : settings_{std::move(settings)} {}
-
 Application::~Application() {
   stop_lane_detection_signal_ = true;
   if (lane_detection_thread_.joinable()) {

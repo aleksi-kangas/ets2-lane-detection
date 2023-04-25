@@ -22,8 +22,6 @@ struct Settings {
   bool enable_lane_detection{false};
   CaptureSettings capture{};
   ModelSettings model{};
-
-  static Settings ParseArgs(int argc, char** argv);
 };
 
 }  // namespace ets2ld
