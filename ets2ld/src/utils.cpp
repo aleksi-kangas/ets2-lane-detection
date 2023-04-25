@@ -5,9 +5,48 @@
 #include <numbers>
 #include <stdexcept>
 
+#include <ShlObj.h>
 #include <imgui_internal.h>
 
+namespace {
+struct ComInit {
+  ComInit() {
+    if (FAILED(CoInitialize(nullptr)))
+      throw std::runtime_error{"Failed to initialize COM."};
+  }
+  ~ComInit() { CoUninitialize(); }
+};
+}  // namespace
+
 namespace ets2ld::utils {
+std::filesystem::path BrowseFolderDialog() {
+  ComInit com_init{};  // Initialize COM to be able to use the IFileOpenDialog
+
+  CComPtr<IFileOpenDialog> file_open_dialog;
+  if (FAILED(file_open_dialog.CoCreateInstance(CLSID_FileOpenDialog)))
+    throw std::runtime_error{"Failed to create IFileOpenDialog instance."};
+
+  FILEOPENDIALOGOPTIONS options{};
+  if (FAILED(file_open_dialog->GetOptions(&options)))
+    throw std::runtime_error{"Failed to get options for IFileOpenDialog."};
+  if (FAILED(file_open_dialog->SetOptions(
+          options | FOS_PICKFOLDERS | FOS_PATHMUSTEXIST | FOS_FORCEFILESYSTEM)))
+    throw std::runtime_error{"Failed to set options for IFileOpenDialog."};
+
+  if (FAILED(file_open_dialog->Show(nullptr)))
+    throw std::runtime_error{"Failed to show IFileOpenDialog."};
+
+  CComPtr<IShellItem> selected_item;
+  if (FAILED(file_open_dialog->GetResult(&selected_item)))
+    throw std::runtime_error{"Failed to get result from IFileOpenDialog."};
+
+  CComHeapPtr<wchar_t> path;
+  if (FAILED(selected_item->GetDisplayName(SIGDN_FILESYSPATH, &path)))
+    throw std::runtime_error{"Failed to get path from IShellItem."};
+
+  return path.m_pData;
+}
+
 std::tuple<CComPtr<ID3D11Device>, CComPtr<IDXGISwapChain>,
            CComPtr<ID3D11DeviceContext>>
 CreateDeviceAndSwapChain(HWND hwnd) {

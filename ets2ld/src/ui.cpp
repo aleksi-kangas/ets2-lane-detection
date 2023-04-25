@@ -195,6 +195,19 @@ void UI::RenderSettingsModel(bool lane_detection_active,
   ImGui::SeparatorText("Model");
   ImGui::BeginDisabled(lane_detection_active || lane_detection_initializing);
   {
+    // Models directory
+    static std::filesystem::path chosen_model_directory =
+        std::filesystem::current_path() / "models";
+    ImGui::Text("Models directory: %s",
+                chosen_model_directory.string().c_str());
+    if (ImGui::Button("Browse...")) {
+      auto path = utils::BrowseFolderDialog();
+      if (!path.empty()) {
+        chosen_model_directory = std::move(path);
+      }
+    }
+
+    // Model selection
     ImGui::Text("Ultra-Fast-Lane-Detection");
     static constexpr std::array<const char*, 1> kModelVersionComboItems = {
         "V1"};
@@ -218,7 +231,9 @@ void UI::RenderSettingsModel(bool lane_detection_active,
         assert(false);
     }
 
+    // Apply model settings
     if (ImGui::Button("Apply")) {
+      settings_.model.directory = chosen_model_directory;
       switch (chosen_model_version) {
         case 0:
           static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
