@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <tuple>
 #include <variant>
 
@@ -13,7 +14,7 @@
 #include "ufld/v1.h"
 
 namespace ets2ld::utils {
-std::filesystem::path BrowseFolderDialog();
+std::optional<std::filesystem::path> BrowseFolderDialog();
 
 std::tuple<CComPtr<ID3D11Device>, CComPtr<IDXGISwapChain>,
            CComPtr<ID3D11DeviceContext>>

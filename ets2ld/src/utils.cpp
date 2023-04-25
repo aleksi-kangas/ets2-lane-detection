@@ -19,7 +19,7 @@ struct ComInit {
 }  // namespace
 
 namespace ets2ld::utils {
-std::filesystem::path BrowseFolderDialog() {
+std::optional<std::filesystem::path> BrowseFolderDialog() {
   ComInit com_init{};  // Initialize COM to be able to use the IFileOpenDialog
 
   CComPtr<IFileOpenDialog> file_open_dialog;
@@ -34,7 +34,7 @@ std::filesystem::path BrowseFolderDialog() {
     throw std::runtime_error{"Failed to set options for IFileOpenDialog."};
 
   if (FAILED(file_open_dialog->Show(nullptr)))
-    throw std::runtime_error{"Failed to show IFileOpenDialog."};
+    return std::nullopt;
 
   CComPtr<IShellItem> selected_item;
   if (FAILED(file_open_dialog->GetResult(&selected_item)))

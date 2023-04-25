@@ -202,8 +202,8 @@ void UI::RenderSettingsModel(bool lane_detection_active,
                 chosen_model_directory.string().c_str());
     if (ImGui::Button("Browse...")) {
       auto path = utils::BrowseFolderDialog();
-      if (!path.empty()) {
-        chosen_model_directory = std::move(path);
+      if (path && !path->empty()) {
+        chosen_model_directory = std::move(path.value());
       }
     }
 
