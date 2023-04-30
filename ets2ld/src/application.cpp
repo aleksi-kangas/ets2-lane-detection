@@ -35,9 +35,12 @@ void Application::Run() {
   }
 }
 
-void Application::LaneDetectionThread() {
+void Application::LaneDetectionThread(CaptureSettings capture_settings) {
   dx11::Capture capture{};
-  auto camera = capture.Start(0, 0, 1);
+  auto camera =
+      capture.Start(0, 0, 1,
+                    cv::Rect{capture_settings.x, capture_settings.y,
+                             capture_settings.width, capture_settings.height});
 
   while (!stop_lane_detection_signal_) {
     const cv::Mat frame = camera->GetNewestFrame();
@@ -68,21 +71,23 @@ void Application::HandleLaneDetectionEnableChanged() {
               } catch (const std::exception& e) {
                 ui_.ShowErrorMessage(e.what());
                 lane_detection_initializing_ = false;
+                lane_detection_active_ = false;
                 return;
               }
               lane_detection_initializing_ = false;
               lane_detection_active_ = true;
-              lane_detection_thread_ =
-                  std::thread{&Application::LaneDetectionThread, this};
+              lane_detection_thread_ = std::thread{
+                  &Application::LaneDetectionThread, this, settings_.capture};
             };
         std::thread{InitializeAndStartLaneDetector, settings_.model}.detach();
       } else {
-        lane_detection_thread_ =
-            std::thread{&Application::LaneDetectionThread, this};
+        lane_detection_thread_ = std::thread{&Application::LaneDetectionThread,
+                                             this, settings_.capture};
       }
     } else {
       stop_lane_detection_signal_ = true;
-      lane_detection_thread_.join();
+      if (lane_detection_thread_.joinable())
+        lane_detection_thread_.join();
     }
   }
 }

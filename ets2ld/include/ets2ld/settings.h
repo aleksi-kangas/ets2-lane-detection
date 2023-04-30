@@ -3,13 +3,17 @@
 #include <filesystem>
 #include <variant>
 
+#include "ets2ld/utils.h"
 #include "ufld/ufld.h"
 #include "ufld/v1.h"
 
 namespace ets2ld {
 
 struct CaptureSettings {
-  // TODO
+  int32_t x{0};
+  int32_t y{0};
+  int32_t width{utils::QueryPrimaryMonitorResolution().first};
+  int32_t height{utils::QueryPrimaryMonitorResolution().second};
 };
 
 struct ModelSettings {

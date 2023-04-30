@@ -42,7 +42,7 @@ class Application {
   std::atomic<bool> lane_detection_result_available_{false};
   std::mutex lane_detection_mutex_{};
 
-  void LaneDetectionThread();
+  void LaneDetectionThread(CaptureSettings capture_settings);
 
   void HandleLaneDetectionEnableChanged();
   void HandleModelSettingsChanged();

@@ -48,6 +48,7 @@ class UI {
 
   // Callbacks
   std::function<void()> on_lane_detection_enable_changed_{};
+  std::function<void()> on_capture_settings_changed_{};
   std::function<void()> on_model_settings_changed_{};
 
   void CreateUIWindow();
@@ -60,6 +61,6 @@ class UI {
 
   void RenderSettingsGeneral(bool lane_detection_initializing);
   void RenderSettingsModel(bool lane_detection_active, bool lane_detection_initializing);
-  void RenderSettingsCapture();
+  void RenderSettingsCapture(bool lane_detection_active);
 };
 }  // namespace ets2ld

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <optional>
 #include <tuple>
+#include <utility>
 #include <variant>
 
 #include <atlbase.h>
@@ -26,6 +27,8 @@ std::unique_ptr<ufld::ILaneDetector> CreateLaneDetector(
 
 CComPtr<ID3D11RenderTargetView> CreateRenderTargetView(
     ID3D11Device* device, IDXGISwapChain* swap_chain);
+
+std::pair<int32_t, int32_t> QueryPrimaryMonitorResolution();
 }  // namespace ets2ld::utils
 
 namespace ImGui {

@@ -65,7 +65,7 @@ void UI::RenderSettings(bool lane_detection_active,
   {
     RenderSettingsGeneral(lane_detection_initializing);
     RenderSettingsModel(lane_detection_active, lane_detection_initializing);
-    RenderSettingsCapture();
+    RenderSettingsCapture(lane_detection_active);
   }
   ImGui::End();
 }
@@ -269,9 +269,37 @@ void UI::RenderSettingsModel(bool lane_detection_active,
   ImGui::EndDisabled();
 }
 
-void UI::RenderSettingsCapture() {
+void UI::RenderSettingsCapture(bool lane_detection_active) {
+  static const auto kPrimaryMonitorResolution =
+      utils::QueryPrimaryMonitorResolution();
+  static CaptureSettings capture_settings{
+      .x = 0,
+      .y = 0,
+      .width = kPrimaryMonitorResolution.first,
+      .height = kPrimaryMonitorResolution.second};
+
   ImGui::SeparatorText("Capture");
-  ImGui::Text("TODO: Capture Settings");
+  ImGui::BeginDisabled(lane_detection_active);
+  {
+    ImGui::SliderInt("X", &capture_settings.x, 0,
+                     kPrimaryMonitorResolution.first) -
+        1;
+    ImGui::SliderInt("Y", &capture_settings.y, 0,
+                     kPrimaryMonitorResolution.second) -
+        1;
+    ImGui::SliderInt("Width", &capture_settings.width, 1,
+                     kPrimaryMonitorResolution.first - capture_settings.x);
+    ImGui::SliderInt("Height", &capture_settings.height, 1,
+                     kPrimaryMonitorResolution.second - capture_settings.y);
+
+    // Apply model settings
+    if (ImGui::Button("Apply")) {
+      settings_.capture = capture_settings;
+      if (on_capture_settings_changed_)
+        on_capture_settings_changed_();
+    }
+  }
+  ImGui::EndDisabled();
 }
 
 }  // namespace ets2ld

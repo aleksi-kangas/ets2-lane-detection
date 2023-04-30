@@ -7,6 +7,8 @@
 
 #include <ShlObj.h>
 #include <imgui_internal.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 namespace {
 struct ComInit {
@@ -113,6 +115,10 @@ CComPtr<ID3D11RenderTargetView> CreateRenderTargetView(
     throw std::runtime_error{"Failed to create render target view"};
   }
   return render_target_view;
+}
+
+std::pair<int32_t, int32_t> QueryPrimaryMonitorResolution() {
+  return {GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
 }
 
 }  // namespace ets2ld::utils
