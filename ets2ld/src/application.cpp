@@ -26,7 +26,15 @@ void Application::Run() {
     ui_.RenderSettings(lane_detection_active_, lane_detection_initializing_);
 
     if (lane_detection_active_) {
-      // TODO Update preview image by using LaneDetectionResult
+      if (lane_detection_result_available_) {
+        LaneDetectionResult result{};
+        {
+          std::lock_guard<std::mutex> lock{lane_detection_mutex_};
+          result = std::move(lane_detection_result_);
+          lane_detection_result_available_ = false;
+        }
+        ui_.UpdatePreview(result.preview);
+      }
 
       ui_.RenderPreview(lane_detection_initializing_);
     }
@@ -62,24 +70,24 @@ void Application::HandleLaneDetectionEnableChanged() {
     lane_detection_active_ = settings_.enable_lane_detection;
     if (lane_detection_active_) {
       if (lane_detector_ == nullptr) {
-        auto InitializeAndStartLaneDetector =
-            [&](const ModelSettings& settings) {
-              lane_detection_initializing_ = true;
-              try {
-                lane_detector_ = utils::CreateLaneDetector(
-                    settings.directory, settings.variant, settings.version);
-              } catch (const std::exception& e) {
-                ui_.ShowErrorMessage(e.what());
-                lane_detection_initializing_ = false;
-                lane_detection_active_ = false;
-                return;
-              }
-              lane_detection_initializing_ = false;
-              lane_detection_active_ = true;
-              lane_detection_thread_ = std::thread{
-                  &Application::LaneDetectionThread, this, settings_.capture};
-            };
-        std::thread{InitializeAndStartLaneDetector, settings_.model}.detach();
+        auto InitializeAndStartLaneDetector = [&](const Settings& settings) {
+          lane_detection_initializing_ = true;
+          try {
+            lane_detector_ = utils::CreateLaneDetector(settings.model.directory,
+                                                       settings.model.variant,
+                                                       settings.model.version);
+          } catch (const std::exception& e) {
+            ui_.ShowErrorMessage(e.what());
+            lane_detection_initializing_ = false;
+            lane_detection_active_ = false;
+            return;
+          }
+          lane_detection_initializing_ = false;
+          lane_detection_active_ = true;
+          lane_detection_thread_ = std::thread{
+              &Application::LaneDetectionThread, this, settings.capture};
+        };
+        std::thread{InitializeAndStartLaneDetector, settings_}.detach();
       } else {
         lane_detection_thread_ = std::thread{&Application::LaneDetectionThread,
                                              this, settings_.capture};

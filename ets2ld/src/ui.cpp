@@ -70,6 +70,44 @@ void UI::RenderSettings(bool lane_detection_active,
   ImGui::End();
 }
 
+void UI::UpdatePreview(const cv::Mat& preview) {
+  cv::Mat preview_rgba{};
+  cv::cvtColor(preview, preview_rgba, cv::COLOR_BGR2RGBA);
+
+  D3D11_TEXTURE2D_DESC texture_desc{};
+  texture_desc.Width = preview_rgba.cols;
+  texture_desc.Height = preview_rgba.rows;
+  texture_desc.MipLevels = 1;
+  texture_desc.ArraySize = 1;
+  texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  texture_desc.SampleDesc.Count = 1;
+  texture_desc.Usage = D3D11_USAGE_DEFAULT;
+  texture_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+  texture_desc.CPUAccessFlags = 0;
+  texture_desc.MiscFlags = 0;
+
+  D3D11_SUBRESOURCE_DATA subresource_data{};
+  subresource_data.pSysMem = preview_rgba.data;
+  subresource_data.SysMemPitch = preview_rgba.cols * 4;
+  subresource_data.SysMemSlicePitch = 0;
+
+  CComPtr<ID3D11Texture2D> texture;
+  device_->CreateTexture2D(&texture_desc, &subresource_data, &texture);
+
+  D3D11_SHADER_RESOURCE_VIEW_DESC shader_resource_view_desc{};
+  shader_resource_view_desc.Format = texture_desc.Format;
+  shader_resource_view_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+  shader_resource_view_desc.Texture2D.MipLevels = 1;
+  shader_resource_view_desc.Texture2D.MostDetailedMip = 0;
+
+  CComPtr<ID3D11ShaderResourceView> shader_resource_view;
+  device_->CreateShaderResourceView(texture, &shader_resource_view_desc,
+                                    &shader_resource_view);
+
+  preview_texture_ = texture;
+  preview_srv_ = shader_resource_view;
+}
+
 void UI::RenderPreview(bool lane_detection_initializing) {
   ImGui::Begin("Preview");
   {
@@ -79,7 +117,8 @@ void UI::RenderPreview(bool lane_detection_initializing) {
       ImGui::SameLine();
       ImGui::Text("Initializing OnnxRuntime and loading model...");
     } else {
-      ImGui::Text("TODO PREVIEW");
+      ImGui::Image(reinterpret_cast<void*>(preview_srv_.p),
+                   ImGui::GetContentRegionAvail(), ImVec2{0, 0}, ImVec2{1, 1});
     }
   }
   ImGui::End();

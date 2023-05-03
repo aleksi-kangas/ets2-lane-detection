@@ -27,6 +27,8 @@ class UI {
 
   void RenderSettings(bool lane_detection_active,
                       bool lane_detection_initializing);
+
+  void UpdatePreview(const cv::Mat& preview);
   void RenderPreview(bool lane_detection_initializing);
 
   void EndFrame();
@@ -46,6 +48,9 @@ class UI {
   CComPtr<IDXGISwapChain> swap_chain_{nullptr};
   CComPtr<ID3D11RenderTargetView> render_target_view_{nullptr};
 
+  CComPtr<ID3D11Texture2D> preview_texture_{nullptr};
+  CComPtr<ID3D11ShaderResourceView> preview_srv_{nullptr};
+
   // Callbacks
   std::function<void()> on_lane_detection_enable_changed_{};
   std::function<void()> on_capture_settings_changed_{};
@@ -60,7 +65,8 @@ class UI {
   [[nodiscard]] bool PollEvents();
 
   void RenderSettingsGeneral(bool lane_detection_initializing);
-  void RenderSettingsModel(bool lane_detection_active, bool lane_detection_initializing);
+  void RenderSettingsModel(bool lane_detection_active,
+                           bool lane_detection_initializing);
   void RenderSettingsCapture(bool lane_detection_active);
 };
 }  // namespace ets2ld
