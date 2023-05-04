@@ -321,11 +321,9 @@ void UI::RenderSettingsCapture(bool lane_detection_active) {
   ImGui::BeginDisabled(lane_detection_active);
   {
     ImGui::SliderInt("X", &capture_settings.x, 0,
-                     kPrimaryMonitorResolution.first) -
-        1;
+                     kPrimaryMonitorResolution.first - 1);
     ImGui::SliderInt("Y", &capture_settings.y, 0,
-                     kPrimaryMonitorResolution.second) -
-        1;
+                     kPrimaryMonitorResolution.second - 1);
     ImGui::SliderInt("Width", &capture_settings.width, 1,
                      kPrimaryMonitorResolution.first - capture_settings.x);
     ImGui::SliderInt("Height", &capture_settings.height, 1,
