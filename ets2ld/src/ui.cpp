@@ -296,23 +296,18 @@ void UI::RenderSettingsCapture(bool lane_detection_initializing,
                                bool lane_detection_active) {
   static const auto kPrimaryMonitorResolution =
       utils::QueryPrimaryMonitorResolution();
-  static CaptureSettings capture_settings{
-      .x = 0,
-      .y = 0,
-      .width = kPrimaryMonitorResolution.first,
-      .height = kPrimaryMonitorResolution.second};
 
   ImGui::SeparatorText("Capture");
   ImGui::BeginDisabled(lane_detection_initializing || lane_detection_active);
   {
-    ImGui::SliderInt("X", &capture_settings.x, 0,
+    ImGui::SliderInt("X", &settings_.capture.x, 0,
                      kPrimaryMonitorResolution.first - 1);
-    ImGui::SliderInt("Y", &capture_settings.y, 0,
+    ImGui::SliderInt("Y", &settings_.capture.y, 0,
                      kPrimaryMonitorResolution.second - 1);
-    ImGui::SliderInt("Width", &capture_settings.width, 1,
-                     kPrimaryMonitorResolution.first - capture_settings.x);
-    ImGui::SliderInt("Height", &capture_settings.height, 1,
-                     kPrimaryMonitorResolution.second - capture_settings.y);
+    ImGui::SliderInt("Width", &settings_.capture.width, 1,
+                     kPrimaryMonitorResolution.first - settings_.capture.x);
+    ImGui::SliderInt("Height", &settings_.capture.height, 1,
+                     kPrimaryMonitorResolution.second - settings_.capture.y);
   }
   ImGui::EndDisabled();
 }

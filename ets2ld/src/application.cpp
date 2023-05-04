@@ -92,7 +92,9 @@ void Application::HandleLaneDetectionEnableChanged() {
     stop_lane_detection_signal_ = true;
     if (lane_detection_thread_.joinable())
       lane_detection_thread_.join();
+    stop_lane_detection_signal_ = false;
     lane_detection_active_ = false;
+    return;
   }
 
   if (lane_detector_ == nullptr) {
