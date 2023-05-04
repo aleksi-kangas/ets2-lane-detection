@@ -25,8 +25,8 @@ class UI {
 
   [[nodiscard]] bool BeginFrame();
 
-  void RenderSettings(bool lane_detection_active,
-                      bool lane_detection_initializing);
+  void RenderSettings(bool lane_detection_initializing,
+                      bool lane_detection_active);
 
   void UpdatePreview(const cv::Mat& preview);
   void RenderPreview(bool lane_detection_initializing);
@@ -34,7 +34,6 @@ class UI {
   void EndFrame();
 
   void SetOnLaneDetectionEnableChanged(std::function<void()> callback);
-  void SetOnModelSettingsChanged(std::function<void()> callback);
 
   void ShowErrorMessage(const std::string& message);
 
@@ -53,8 +52,6 @@ class UI {
 
   // Callbacks
   std::function<void()> on_lane_detection_enable_changed_{};
-  std::function<void()> on_capture_settings_changed_{};
-  std::function<void()> on_model_settings_changed_{};
 
   void CreateUIWindow();
 
@@ -65,8 +62,9 @@ class UI {
   [[nodiscard]] bool PollEvents();
 
   void RenderSettingsGeneral(bool lane_detection_initializing);
-  void RenderSettingsModel(bool lane_detection_active,
-                           bool lane_detection_initializing);
-  void RenderSettingsCapture(bool lane_detection_active);
+  void RenderSettingsModel(bool lane_detection_initializing,
+                           bool lane_detection_active);
+  void RenderSettingsCapture(bool lane_detection_initializing,
+                             bool lane_detection_active);
 };
 }  // namespace ets2ld

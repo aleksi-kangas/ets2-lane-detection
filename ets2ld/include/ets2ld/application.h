@@ -42,10 +42,13 @@ class Application {
   std::atomic<bool> lane_detection_result_available_{false};
   std::mutex lane_detection_mutex_{};
 
+  void InitializeAndStartLaneDetector(const Settings& settings);
   void LaneDetectionThread(CaptureSettings capture_settings);
 
   void HandleLaneDetectionEnableChanged();
-  void HandleModelSettingsChanged();
+  static bool AreModelSettingsDifferent(
+      const ModelSettings& model_settings,
+      const std::unique_ptr<ufld::ILaneDetector>& lane_detector);
 };
 
 }  // namespace ets2ld

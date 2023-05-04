@@ -10,7 +10,6 @@
 
 #include "ets2ld/utils.h"
 #include "ufld/ufld.h"
-#include "ufld/v1.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
                                                              UINT msg,
@@ -59,13 +58,13 @@ bool UI::BeginFrame() {
   return true;
 }
 
-void UI::RenderSettings(bool lane_detection_active,
-                        bool lane_detection_initializing) {
+void UI::RenderSettings(bool lane_detection_initializing,
+                        bool lane_detection_active) {
   ImGui::Begin("Settings");
   {
     RenderSettingsGeneral(lane_detection_initializing);
-    RenderSettingsModel(lane_detection_active, lane_detection_initializing);
-    RenderSettingsCapture(lane_detection_active);
+    RenderSettingsModel(lane_detection_initializing, lane_detection_active);
+    RenderSettingsCapture(lane_detection_initializing, lane_detection_active);
   }
   ImGui::End();
 }
@@ -136,10 +135,6 @@ void UI::EndFrame() {
 
 void UI::SetOnLaneDetectionEnableChanged(std::function<void()> callback) {
   on_lane_detection_enable_changed_ = std::move(callback);
-}
-
-void UI::SetOnModelSettingsChanged(std::function<void()> callback) {
-  on_model_settings_changed_ = std::move(callback);
 }
 
 void UI::ShowErrorMessage(const std::string& message) {
@@ -229,10 +224,10 @@ void UI::RenderSettingsGeneral(bool lane_detection_initializing) {
   ImGui::EndDisabled();
 }
 
-void UI::RenderSettingsModel(bool lane_detection_active,
-                             bool lane_detection_initializing) {
+void UI::RenderSettingsModel(bool lane_detection_initializing,
+                             bool lane_detection_active) {
   ImGui::SeparatorText("Model");
-  ImGui::BeginDisabled(lane_detection_active || lane_detection_initializing);
+  ImGui::BeginDisabled(lane_detection_initializing || lane_detection_active);
   {
     // Models directory
     static std::filesystem::path chosen_model_directory =
@@ -293,16 +288,12 @@ void UI::RenderSettingsModel(bool lane_detection_active,
       default:
         assert(false);
     }
-    if (lane_detection_initializing) {
-      ImGui::SameLine();
-      ImGui::Spinner("InitializingSpinner", 10, 2,
-                     ImGui::GetColorU32(ImGuiCol_Text));
-    }
   }
   ImGui::EndDisabled();
 }
 
-void UI::RenderSettingsCapture(bool lane_detection_active) {
+void UI::RenderSettingsCapture(bool lane_detection_initializing,
+                               bool lane_detection_active) {
   static const auto kPrimaryMonitorResolution =
       utils::QueryPrimaryMonitorResolution();
   static CaptureSettings capture_settings{
@@ -312,7 +303,7 @@ void UI::RenderSettingsCapture(bool lane_detection_active) {
       .height = kPrimaryMonitorResolution.second};
 
   ImGui::SeparatorText("Capture");
-  ImGui::BeginDisabled(lane_detection_active);
+  ImGui::BeginDisabled(lane_detection_initializing || lane_detection_active);
   {
     ImGui::SliderInt("X", &capture_settings.x, 0,
                      kPrimaryMonitorResolution.first - 1);
@@ -322,13 +313,6 @@ void UI::RenderSettingsCapture(bool lane_detection_active) {
                      kPrimaryMonitorResolution.first - capture_settings.x);
     ImGui::SliderInt("Height", &capture_settings.height, 1,
                      kPrimaryMonitorResolution.second - capture_settings.y);
-
-    // Apply model settings
-    if (ImGui::Button("Apply")) {
-      settings_.capture = capture_settings;
-      if (on_capture_settings_changed_)
-        on_capture_settings_changed_();
-    }
   }
   ImGui::EndDisabled();
 }
