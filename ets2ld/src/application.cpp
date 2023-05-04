@@ -74,8 +74,8 @@ void Application::HandleLaneDetectionEnableChanged() {
           lane_detection_initializing_ = true;
           try {
             lane_detector_ = utils::CreateLaneDetector(settings.model.directory,
-                                                       settings.model.variant,
-                                                       settings.model.version);
+                                                       settings.model.version,
+                                                       settings.model.variant);
           } catch (const std::exception& e) {
             ui_.ShowErrorMessage(e.what());
             lane_detection_initializing_ = false;
@@ -106,7 +106,7 @@ void Application::HandleModelSettingsChanged() {
     lane_detection_initializing_ = true;
     try {
       lane_detector_ = utils::CreateLaneDetector(
-          settings.directory, settings.variant, settings.version);
+          settings.directory, settings.version, settings.variant);
     } catch (const std::exception& e) {
       ui_.ShowErrorMessage(e.what());
       lane_detection_initializing_ = false;

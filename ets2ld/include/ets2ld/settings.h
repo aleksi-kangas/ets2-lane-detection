@@ -5,7 +5,6 @@
 
 #include "ets2ld/utils.h"
 #include "ufld/ufld.h"
-#include "ufld/v1.h"
 
 namespace ets2ld {
 
@@ -18,7 +17,7 @@ struct CaptureSettings {
 
 struct ModelSettings {
   std::filesystem::path directory{".\\models"};
-  std::variant<ufld::v1::ModelType> variant{ufld::v1::ModelType::kCULane};
+  std::variant<ufld::v1::ModelVariant> variant{ufld::v1::ModelVariant::kCULane};
   ufld::Version version{ufld::Version::kV1};
 };
 

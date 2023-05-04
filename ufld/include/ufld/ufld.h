@@ -5,14 +5,18 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include <onnxruntime_cxx_api.h>
 #include <opencv2/opencv.hpp>
 
 namespace ufld {
-
 enum class Version { kV1 };
+
+namespace v1 {
+enum class ModelVariant { kCULane, kTuSimple };
+}  // namespace v1
 
 using Lane = std::vector<cv::Point>;
 
@@ -31,7 +35,12 @@ class ILaneDetector {
   [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image);
 
  protected:
-  explicit ILaneDetector(const std::filesystem::path& model_path);
+  explicit ILaneDetector(const std::filesystem::path& model_path,
+                         Version version,
+                         std::variant<v1::ModelVariant> variant);
+
+  Version version_{};
+  std::variant<v1::ModelVariant> variant_{};
 
   Ort::Env env_{ORT_LOGGING_LEVEL_WARNING, "UFLD"};
   Ort::Session session_{nullptr};

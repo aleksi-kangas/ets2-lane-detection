@@ -11,10 +11,6 @@
 #include "ufld.h"
 
 namespace ufld::v1 {
-
-enum class ModelType { kCULane, kTuSimple };
-ModelType ModelTypeFromString(const std::string& model_type);
-
 struct IConfig {
  public:
   // The number of cells in a grid row, where the last cell indicates no lane found in the row
@@ -52,7 +48,7 @@ struct TuSimpleConfig : public IConfig {
 class LaneDetector final : public ILaneDetector {
  public:
   LaneDetector(const std::filesystem::path& model_directory,
-               ModelType model_type);
+               ModelVariant model_variant);
 
   LaneDetector(const LaneDetector&) = delete;
   LaneDetector& operator=(const LaneDetector&) = delete;
@@ -76,7 +72,7 @@ class LaneDetector final : public ILaneDetector {
       int32_t image_height) override;
 
   [[nodiscard]] static std::filesystem::path ConstructModelPath(
-      const std::filesystem::path& model_directory, ModelType model_type);
+      const std::filesystem::path& model_directory, ModelVariant model_type);
 };
 
 }  // namespace ufld::v1

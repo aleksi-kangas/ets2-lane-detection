@@ -57,7 +57,10 @@ std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {
   return PredictionsToLanes(outputs, image.cols, image.rows);
 }
 
-ILaneDetector::ILaneDetector(const std::filesystem::path& model_path) {
+ILaneDetector::ILaneDetector(const std::filesystem::path& model_path,
+                             Version version,
+                             std::variant<v1::ModelVariant> variant)
+    : version_{version}, variant_{variant} {
   InitializeSession(model_path);
   InitializeInput();
   InitializeOutputs();

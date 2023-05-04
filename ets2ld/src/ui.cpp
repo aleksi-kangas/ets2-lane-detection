@@ -279,14 +279,14 @@ void UI::RenderSettingsModel(bool lane_detection_active,
           settings_.model.version = ufld::Version::kV1;
           switch (chosen_model_variant_v1) {
             case 0:
-              static_assert(0 ==
-                            static_cast<int32_t>(ufld::v1::ModelType::kCULane));
-              settings_.model.variant = ufld::v1::ModelType::kCULane;
+              static_assert(
+                  0 == static_cast<int32_t>(ufld::v1::ModelVariant::kCULane));
+              settings_.model.variant = ufld::v1::ModelVariant::kCULane;
               break;
             case 1:
               static_assert(
-                  1 == static_cast<int32_t>(ufld::v1::ModelType::kTuSimple));
-              settings_.model.variant = ufld::v1::ModelType::kTuSimple;
+                  1 == static_cast<int32_t>(ufld::v1::ModelVariant::kTuSimple));
+              settings_.model.variant = ufld::v1::ModelVariant::kTuSimple;
               break;
             default:
               assert(false);

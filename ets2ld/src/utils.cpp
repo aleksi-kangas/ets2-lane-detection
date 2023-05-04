@@ -10,6 +10,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include "ufld/v1.h"
+
 namespace {
 struct ComInit {
   ComInit() {
@@ -91,11 +93,12 @@ CreateDeviceAndSwapChain(HWND hwnd) {
 
 std::unique_ptr<ufld::ILaneDetector> CreateLaneDetector(
     const std::filesystem::path& model_directory,
-    std::variant<ufld::v1::ModelType> variant, ufld::Version version) {
+    ufld::Version version,
+    std::variant<ufld::v1::ModelVariant> variant) {
   switch (version) {
     case ufld::Version::kV1:
       return std::make_unique<ufld::v1::LaneDetector>(
-          model_directory, std::get<ufld::v1::ModelType>(variant));
+          model_directory, std::get<ufld::v1::ModelVariant>(variant));
     default:
       throw std::runtime_error{"Unsupported version"};
   }
