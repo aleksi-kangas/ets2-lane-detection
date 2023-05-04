@@ -15,7 +15,7 @@ namespace ufld {
 enum class Version { kV1 };
 
 namespace v1 {
-enum class ModelVariant { kCULane, kTuSimple };
+enum class Variant { kCULane, kTuSimple };
 }  // namespace v1
 
 using Lane = std::vector<cv::Point>;
@@ -34,13 +34,16 @@ class ILaneDetector {
 
   [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image);
 
+  [[nodiscard]] std::filesystem::path ModelDirectory() const;
+  [[nodiscard]] Version ModelVersion() const;
+  [[nodiscard]] std::variant<v1::Variant> ModelVariant() const;
+
  protected:
   explicit ILaneDetector(const std::filesystem::path& model_path,
-                         Version version,
-                         std::variant<v1::ModelVariant> variant);
-
+                         Version version, std::variant<v1::Variant> variant);
+  std::filesystem::path model_directory_{};
   Version version_{};
-  std::variant<v1::ModelVariant> variant_{};
+  std::variant<v1::Variant> variant_{};
 
   Ort::Env env_{ORT_LOGGING_LEVEL_WARNING, "UFLD"};
   Ort::Session session_{nullptr};

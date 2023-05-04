@@ -92,13 +92,12 @@ CreateDeviceAndSwapChain(HWND hwnd) {
 }
 
 std::unique_ptr<ufld::ILaneDetector> CreateLaneDetector(
-    const std::filesystem::path& model_directory,
-    ufld::Version version,
-    std::variant<ufld::v1::ModelVariant> variant) {
+    const std::filesystem::path& directory, ufld::Version version,
+    std::variant<ufld::v1::Variant> variant) {
   switch (version) {
     case ufld::Version::kV1:
       return std::make_unique<ufld::v1::LaneDetector>(
-          model_directory, std::get<ufld::v1::ModelVariant>(variant));
+          directory, std::get<ufld::v1::Variant>(variant));
     default:
       throw std::runtime_error{"Unsupported version"};
   }

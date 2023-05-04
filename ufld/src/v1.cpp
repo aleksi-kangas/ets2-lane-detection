@@ -11,14 +11,14 @@
 namespace ufld::v1 {
 
 LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
-                           ModelVariant variant)
+                           Variant variant)
     : ILaneDetector{ConstructModelPath(model_directory, variant), Version::kV1,
                     variant} {
   config_ = [=]() -> std::unique_ptr<IConfig> {
     switch (variant) {
-      case ModelVariant::kCULane:
+      case Variant::kCULane:
         return std::make_unique<CULaneConfig>();
-      case ModelVariant::kTuSimple:
+      case Variant::kTuSimple:
         return std::make_unique<TuSimpleConfig>();
       default:
         throw std::invalid_argument{"Invalid model type"};
@@ -91,13 +91,12 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
 }
 
 std::filesystem::path LaneDetector::ConstructModelPath(
-    const std::filesystem::path& model_directory,
-    ufld::v1::ModelVariant variant) {
+    const std::filesystem::path& directory, ufld::v1::Variant variant) {
   switch (variant) {
-    case ufld::v1::ModelVariant::kCULane:
-      return model_directory / kCULaneModelFile;
-    case ufld::v1::ModelVariant::kTuSimple:
-      return model_directory / kTuSimpleModelFile;
+    case ufld::v1::Variant::kCULane:
+      return directory / kCULaneModelFile;
+    case ufld::v1::Variant::kTuSimple:
+      return directory / kTuSimpleModelFile;
     default:
       throw std::runtime_error("Invalid model type");
   }

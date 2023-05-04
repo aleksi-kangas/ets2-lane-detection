@@ -17,7 +17,7 @@ struct CaptureSettings {
 
 struct ModelSettings {
   std::filesystem::path directory{".\\models"};
-  std::variant<ufld::v1::ModelVariant> variant{ufld::v1::ModelVariant::kCULane};
+  std::variant<ufld::v1::Variant> variant{ufld::v1::Variant::kCULane};
   ufld::Version version{ufld::Version::kV1};
 };
 

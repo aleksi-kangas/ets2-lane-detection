@@ -264,40 +264,34 @@ void UI::RenderSettingsModel(bool lane_detection_active,
         static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
         ImGui::Combo("Variant", &chosen_model_variant_v1,
                      kModelVariantComboItemsV1.data(),
-                     kModelVariantComboItemsV1.size());
+                     static_cast<int32_t>(kModelVariantComboItemsV1.size()));
         break;
       default:
         assert(false);
     }
 
-    // Apply model settings
-    if (ImGui::Button("Apply")) {
-      settings_.model.directory = chosen_model_directory;
-      switch (chosen_model_version) {
-        case 0:
-          static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
-          settings_.model.version = ufld::Version::kV1;
-          switch (chosen_model_variant_v1) {
-            case 0:
-              static_assert(
-                  0 == static_cast<int32_t>(ufld::v1::ModelVariant::kCULane));
-              settings_.model.variant = ufld::v1::ModelVariant::kCULane;
-              break;
-            case 1:
-              static_assert(
-                  1 == static_cast<int32_t>(ufld::v1::ModelVariant::kTuSimple));
-              settings_.model.variant = ufld::v1::ModelVariant::kTuSimple;
-              break;
-            default:
-              assert(false);
-          }
-          break;
-        default:
-          assert(false);
-      }
-
-      if (on_model_settings_changed_)
-        on_model_settings_changed_();
+    settings_.model.directory = chosen_model_directory;
+    switch (chosen_model_version) {
+      case 0:
+        static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
+        settings_.model.version = ufld::Version::kV1;
+        switch (chosen_model_variant_v1) {
+          case 0:
+            static_assert(0 ==
+                          static_cast<int32_t>(ufld::v1::Variant::kCULane));
+            settings_.model.variant = ufld::v1::Variant::kCULane;
+            break;
+          case 1:
+            static_assert(1 ==
+                          static_cast<int32_t>(ufld::v1::Variant::kTuSimple));
+            settings_.model.variant = ufld::v1::Variant::kTuSimple;
+            break;
+          default:
+            assert(false);
+        }
+        break;
+      default:
+        assert(false);
     }
     if (lane_detection_initializing) {
       ImGui::SameLine();

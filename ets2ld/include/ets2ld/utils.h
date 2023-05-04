@@ -21,9 +21,8 @@ std::tuple<CComPtr<ID3D11Device>, CComPtr<IDXGISwapChain>,
 CreateDeviceAndSwapChain(HWND hwnd);
 
 std::unique_ptr<ufld::ILaneDetector> CreateLaneDetector(
-    const std::filesystem::path& model_directory,
-    ufld::Version version,
-    std::variant<ufld::v1::ModelVariant> variant);
+    const std::filesystem::path& directory, ufld::Version version,
+    std::variant<ufld::v1::Variant> variant);
 
 CComPtr<ID3D11RenderTargetView> CreateRenderTargetView(
     ID3D11Device* device, IDXGISwapChain* swap_chain);
