@@ -52,9 +52,9 @@ cv::Mat VisualizeLanes(const std::vector<Lane>& lanes, const cv::Mat& image) {
 
 std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {
   std::lock_guard<std::mutex> lock{detection_mutex_};
-  const auto input_image = Preprocess(image);
-  const auto outputs = Inference(input_image);
-  return PredictionsToLanes(outputs, image.cols, image.rows);
+  const auto preprocess_info = Preprocess(image);
+  const auto outputs = Inference(preprocess_info.preprocessed_image);
+  return PredictionsToLanes(outputs, preprocess_info);
 }
 
 std::filesystem::path ILaneDetector::ModelDirectory() const {
@@ -77,6 +77,41 @@ ILaneDetector::ILaneDetector(const std::filesystem::path& model_path,
   InitializeSession(model_path);
   InitializeInput();
   InitializeOutputs();
+}
+
+cv::Mat ILaneDetector::CenterCrop(const cv::Mat& image,
+                                  float input_aspect_ratio) {
+  const auto image_aspect_ratio =
+      static_cast<float>(image.cols) / static_cast<float>(image.rows);
+  if (image_aspect_ratio > input_aspect_ratio) {  // Crop in X
+    //  |- -------------- -|
+    //  |    | x    x |    |
+    //  |    | x    x |    |
+    //  |    | x    x |    |  <- Keep center
+    //  |    | x    x |    |
+    //  |    | x    x |    |
+    //  |- -------------- -|
+    const auto pixels_to_crop = static_cast<int32_t>(
+        static_cast<float>(image.rows) * input_aspect_ratio);
+    const auto x_offset = (image.cols - pixels_to_crop) / 2;
+    const cv::Range y{0, image.rows};
+    const cv::Range x{0 + x_offset, image.cols - x_offset};
+    return image(y, x);
+  } else {  // Crop in Y
+    // |- -------------- -|
+    // |                  |
+    // |------------------|
+    // | x  x  x  x  x  x |  <- Keep center
+    // |------------------|
+    // |                  |
+    // |- -------------- -|
+    const auto pixels_to_crop = static_cast<int32_t>(
+        static_cast<float>(image.cols) / input_aspect_ratio);
+    const auto y_offset = (image.rows - pixels_to_crop) / 2;
+    const cv::Range y{0 + y_offset, image.rows - y_offset};
+    const cv::Range x{0, image.cols};
+    return image(y, x);
+  }
 }
 
 cv::Mat ILaneDetector::ColorPreprocess(const cv::Mat& image) {

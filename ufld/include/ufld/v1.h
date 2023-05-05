@@ -58,17 +58,19 @@ class LaneDetector final : public ILaneDetector {
  private:
   static constexpr int32_t kInputWidth = 800;
   static constexpr int32_t kInputHeight = 288;
+  static constexpr float kInputAspectRatio =
+      static_cast<float>(kInputWidth) / static_cast<float>(kInputHeight);
   static constexpr uint32_t kLaneCount = 4;
   static constexpr auto kCULaneModelFile = "ufld_v1_culane_288x800.onnx";
   static constexpr auto kTuSimpleModelFile = "ufld_v1_tusimple_288x800.onnx";
 
   std::unique_ptr<const IConfig> config_{nullptr};
 
-  [[nodiscard]] cv::Mat Preprocess(const cv::Mat& image) override;
+  [[nodiscard]] PreprocessInfo Preprocess(const cv::Mat& image) override;
 
   [[nodiscard]] std::vector<Lane> PredictionsToLanes(
-      const std::vector<Ort::Value>& outputs, int32_t image_width,
-      int32_t image_height) override;
+      const std::vector<Ort::Value>& outputs,
+      const PreprocessInfo& preprocess_info) override;
 
   [[nodiscard]] std::vector<uint32_t> PredictedCells(
       const std::vector<Ort::Value>& outputs) const;

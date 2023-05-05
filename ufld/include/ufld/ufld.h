@@ -20,6 +20,12 @@ enum class Variant { kCULane, kTuSimple };
 
 using Lane = std::vector<cv::Point>;
 
+struct PreprocessInfo {
+  cv::Mat preprocessed_image;
+  cv::Size original_size;
+  cv::Size cropped_size;
+};
+
 cv::Mat VisualizeLanes(const std::vector<Lane>& lanes, const cv::Mat& image);
 
 class ILaneDetector {
@@ -62,12 +68,14 @@ class ILaneDetector {
   std::vector<int64_t> output_tensor_sizes_{};
   std::vector<std::vector<float>> output_tensor_data_{};
 
-  [[nodiscard]] virtual cv::Mat Preprocess(const cv::Mat& image) = 0;
-  static cv::Mat ColorPreprocess(const cv::Mat& image);
+  [[nodiscard]] virtual PreprocessInfo Preprocess(const cv::Mat& image) = 0;
+  [[nodiscard]] static cv::Mat CenterCrop(const cv::Mat& image,
+                                          float input_aspect_ratio);
+  [[nodiscard]] static cv::Mat ColorPreprocess(const cv::Mat& image);
 
   [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(
-      const std::vector<Ort::Value>& outputs, int32_t image_width,
-      int32_t image_height) = 0;
+      const std::vector<Ort::Value>& outputs,
+      const PreprocessInfo& preprocess_info) = 0;
 
  private:
   void InitializeSession(const std::filesystem::path& model_path);
