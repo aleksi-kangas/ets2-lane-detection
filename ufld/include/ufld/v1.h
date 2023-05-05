@@ -70,6 +70,9 @@ class LaneDetector final : public ILaneDetector {
       const std::vector<Ort::Value>& outputs, int32_t image_width,
       int32_t image_height) override;
 
+  [[nodiscard]] std::vector<uint32_t> PredictedCells(
+      const std::vector<Ort::Value>& outputs) const;
+
   [[nodiscard]] static std::filesystem::path ConstructModelPath(
       const std::filesystem::path& directory, Variant variant);
 };

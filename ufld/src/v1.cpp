@@ -36,6 +36,7 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
     const std::vector<Ort::Value>& outputs, int32_t image_width,
     int32_t image_height) {
   // https://github.com/cfzd/Ultra-Fast-Lane-Detection/blob/master/demo.py
+  const std::vector<uint32_t> predicted_cells = PredictedCells(outputs);
 
   // We have exactly 1 output
   const auto& predictions = outputs[0];
@@ -88,6 +89,31 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
   }
 
   return lanes;
+}
+
+std::vector<uint32_t> LaneDetector::PredictedCells(
+    const std::vector<Ort::Value>& outputs) const {
+  // https://github.com/cfzd/Ultra-Fast-Lane-Detection/blob/master/demo.py
+
+  // We have exactly 1 output
+  const auto& predictions = outputs[0];
+
+  const std::array<uint32_t, 4> kShape{
+      {1, config_->griding_num, config_->cls_num_per_lane, kLaneCount}};
+
+  const auto tensor_type_and_shape_info =
+      predictions.GetTensorTypeAndShapeInfo();
+  const auto shape = tensor_type_and_shape_info.GetShape();
+  assert(shape.size() == 4);
+  assert(shape[0] == kShape[0] && shape[1] == kShape[1] &&
+         shape[2] == kShape[2] && shape[3] == kShape[3]);
+
+  const std::span<const float> predictions_raw(
+      predictions.GetTensorData<float>(),
+      tensor_type_and_shape_info.GetElementCount());
+  const std::vector<float> probabilities =
+      utils::Softmax_1(predictions_raw, kShape);
+  return utils::ArgMax_1(std::span{probabilities}, kShape);
 }
 
 std::filesystem::path LaneDetector::ConstructModelPath(
