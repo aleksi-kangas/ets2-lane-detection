@@ -9,7 +9,7 @@ void DrawLanePoints(const std::vector<ufld::Lane>& lanes,
                     std::array<bool, 4> lanes_to_draw, cv::Mat& image) {
   assert(lanes.size() <= 4);
   const std::array<cv::Scalar, 4> kLaneColors{
-      {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {255, 255, 0}}};
+      {{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}, {255, 255, 0, 255}}};
   for (uint32_t lane_index = 0; lane_index < lanes.size(); ++lane_index) {
     if (!lanes_to_draw[lane_index])
       continue;
@@ -35,26 +35,23 @@ void DrawCenterLaneMask(const std::vector<ufld::Lane>& lanes, cv::Mat& image) {
                       left_divider.end());
   lane_polygon.insert(lane_polygon.end(), right_divider.rbegin(),
                       right_divider.rend());
-  cv::fillPoly(mask, {lane_polygon}, cv::Scalar{255, 191, 0});
+  cv::fillPoly(mask, {lane_polygon}, cv::Scalar{255, 191, 0, 255});
   cv::addWeighted(mask, 0.3, image, 0.7, 0, image);
 }
 }  // namespace
 
 namespace ufld {
-
-cv::Mat VisualizeLanes(const std::vector<Lane>& lanes, const cv::Mat& image) {
-  assert(lanes.size() <= 4);
-  cv::Mat image_copy = image.clone();
-  DrawLanePoints(lanes, {false, true, true, false}, image_copy);
-  DrawCenterLaneMask(lanes, image_copy);
-  return image_copy;
-}
-
-std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image) {
+std::vector<Lane> ILaneDetector::Detect(const cv::Mat& image,
+                                        cv::Mat* preview) {
   std::lock_guard<std::mutex> lock{detection_mutex_};
   const auto preprocess_info = Preprocess(image);
   const auto outputs = Inference(preprocess_info.preprocessed_image);
-  return PredictionsToLanes(outputs, preprocess_info);
+  auto lanes = PredictionsToLanes(outputs, preprocess_info);
+  if (preview) {
+    DrawLanes(lanes, *preview);
+    DrawInputArea(preprocess_info.crop_area, *preview);
+  }
+  return lanes;
 }
 
 std::filesystem::path ILaneDetector::ModelDirectory() const {
@@ -79,8 +76,8 @@ ILaneDetector::ILaneDetector(const std::filesystem::path& model_path,
   InitializeOutputs();
 }
 
-cv::Mat ILaneDetector::CenterCrop(const cv::Mat& image,
-                                  float input_aspect_ratio) {
+cv::Rect ILaneDetector::ComputeCenterCrop(const cv::Mat& image,
+                                          float input_aspect_ratio) {
   const auto image_aspect_ratio =
       static_cast<float>(image.cols) / static_cast<float>(image.rows);
   if (image_aspect_ratio > input_aspect_ratio) {  // Crop in X
@@ -94,9 +91,12 @@ cv::Mat ILaneDetector::CenterCrop(const cv::Mat& image,
     const auto pixels_to_crop = static_cast<int32_t>(
         static_cast<float>(image.rows) * input_aspect_ratio);
     const auto x_offset = (image.cols - pixels_to_crop) / 2;
-    const cv::Range y{0, image.rows};
-    const cv::Range x{0 + x_offset, image.cols - x_offset};
-    return image(y, x);
+    cv::Rect crop_area{};
+    crop_area.x = x_offset;
+    crop_area.y = 0;
+    crop_area.width = image.cols - 2 * x_offset;
+    crop_area.height = image.rows;
+    return crop_area;
   } else {  // Crop in Y
     // |- -------------- -|
     // |                  |
@@ -108,15 +108,18 @@ cv::Mat ILaneDetector::CenterCrop(const cv::Mat& image,
     const auto pixels_to_crop = static_cast<int32_t>(
         static_cast<float>(image.cols) / input_aspect_ratio);
     const auto y_offset = (image.rows - pixels_to_crop) / 2;
-    const cv::Range y{0 + y_offset, image.rows - y_offset};
-    const cv::Range x{0, image.cols};
-    return image(y, x);
+    cv::Rect crop_area{};
+    crop_area.x = 0;
+    crop_area.y = y_offset;
+    crop_area.width = image.cols;
+    crop_area.height = image.rows - 2 * y_offset;
+    return crop_area;
   }
 }
 
 cv::Mat ILaneDetector::ColorPreprocess(const cv::Mat& image) {
   cv::Mat converted_image;
-  cv::cvtColor(image, converted_image, cv::COLOR_BGR2RGB);
+  cv::cvtColor(image, converted_image, cv::COLOR_RGBA2RGB);
   converted_image.convertTo(converted_image, CV_32FC3, 1.0f / 255.0f);
   // ResNet
   const cv::Scalar mean{0.485, 0.456, 0.406};
@@ -244,6 +247,16 @@ std::vector<Ort::Value> ILaneDetector::Inference(const cv::Mat& image) {
                OutputNamesToRaw().data(), output_tensors.data(),
                output_tensors.size());
   return output_tensors;
+}
+
+void ILaneDetector::DrawLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
+  assert(lanes.size() <= 4);
+  DrawLanePoints(lanes, {true, true, true, true}, image);
+  DrawCenterLaneMask(lanes, image);
+}
+
+void ILaneDetector::DrawInputArea(cv::Rect inputArea, cv::Mat& image) {
+  cv::rectangle(image, inputArea, cv::Scalar{255, 0, 0, 255}, /* thickness=*/5);
 }
 
 }  // namespace ufld

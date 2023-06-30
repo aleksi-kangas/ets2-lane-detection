@@ -70,12 +70,9 @@ void UI::RenderSettings(bool lane_detection_initializing,
 }
 
 void UI::UpdatePreview(const cv::Mat& preview) {
-  cv::Mat preview_rgba{};
-  cv::cvtColor(preview, preview_rgba, cv::COLOR_BGR2RGBA);
-
   D3D11_TEXTURE2D_DESC texture_desc{};
-  texture_desc.Width = preview_rgba.cols;
-  texture_desc.Height = preview_rgba.rows;
+  texture_desc.Width = preview.cols;
+  texture_desc.Height = preview.rows;
   texture_desc.MipLevels = 1;
   texture_desc.ArraySize = 1;
   texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -86,8 +83,8 @@ void UI::UpdatePreview(const cv::Mat& preview) {
   texture_desc.MiscFlags = 0;
 
   D3D11_SUBRESOURCE_DATA subresource_data{};
-  subresource_data.pSysMem = preview_rgba.data;
-  subresource_data.SysMemPitch = preview_rgba.cols * 4;
+  subresource_data.pSysMem = preview.data;
+  subresource_data.SysMemPitch = preview.cols * 4;
   subresource_data.SysMemSlicePitch = 0;
 
   CComPtr<ID3D11Texture2D> texture;

@@ -27,13 +27,14 @@ LaneDetector::LaneDetector(const std::filesystem::path& model_directory,
 }
 
 PreprocessInfo LaneDetector::Preprocess(const cv::Mat& image) {
-  cv::Mat cropped_image = CenterCrop(image, kInputAspectRatio);
+  const cv::Rect crop_area = ComputeCenterCrop(image, kInputAspectRatio);
+  cv::Mat cropped_image = image(crop_area);
   cv::Mat resized_image{};
   cv::resize(cropped_image, resized_image, cv::Size{kInputWidth, kInputHeight});
   return {
       .preprocessed_image = ColorPreprocess(resized_image),
       .original_size = image.size(),
-      .cropped_size = cropped_image.size(),
+      .crop_area = crop_area,
   };
 }
 
@@ -64,20 +65,20 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
 
       // 2nd) Coordinates in the cropped image before resizing
       const auto y_scale =
-          static_cast<float>(preprocess_info.cropped_size.height) /
+          static_cast<float>(preprocess_info.crop_area.height) /
           static_cast<float>(kInputHeight);
       const auto x_scale =
-          static_cast<float>(preprocess_info.cropped_size.width) /
+          static_cast<float>(preprocess_info.crop_area.width) /
           static_cast<float>(kInputWidth);
       y = static_cast<int32_t>(static_cast<float>(y) * y_scale);
       x = static_cast<int32_t>(static_cast<float>(x) * x_scale);
 
       // 3rd) Coordinates in the original image
       const auto crop_offset_y = (preprocess_info.original_size.height -
-                                  preprocess_info.cropped_size.height) /
+                                  preprocess_info.crop_area.height) /
                                  2;
       const auto crop_offset_x = (preprocess_info.original_size.width -
-                                  preprocess_info.cropped_size.width) /
+                                  preprocess_info.crop_area.width) /
                                  2;
       y += crop_offset_y;
       x += crop_offset_x;

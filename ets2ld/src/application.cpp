@@ -72,8 +72,8 @@ void Application::LaneDetectionThread(CaptureSettings capture_settings) {
 
     LaneDetectionResult result{};
     result.frame = frame;
-    result.lanes = lane_detector_->Detect(frame);
-    result.preview = ufld::VisualizeLanes(result.lanes, result.frame);
+    result.preview = frame.clone();
+    result.lanes = lane_detector_->Detect(frame, &result.preview);
     {
       std::lock_guard<std::mutex> lock{lane_detection_mutex_};
       lane_detection_result_ = std::move(result);
