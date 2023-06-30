@@ -57,6 +57,10 @@ std::optional<cv::Mat> Camera::Grab(const cv::Rect& region) {
                 static_cast<size_t>(rect.Pitch)};
   surface_.UnMap();
 
+  // BGRA -> RGBA
+  cv::Mat frame_rgba{};
+  cv::cvtColor(frame, frame_rgba, cv::COLOR_BGRA2RGBA);
+
   auto Crop = [](cv::Mat& src, cv::Rect region) {
     cv::Mat cropped_ref(src, region);
     cv::Mat cropped;
@@ -66,9 +70,10 @@ std::optional<cv::Mat> Camera::Grab(const cv::Rect& region) {
 
   // Crop if the region differs from output resolution
   if (region != cv::Rect{0, 0, width, height}) {
-    return Crop(frame, region);
+    return Crop(frame_rgba, region);
   }
-  return frame;
+
+  return frame_rgba;
 }
 
 }  // namespace dx11
