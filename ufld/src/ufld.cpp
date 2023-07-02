@@ -251,7 +251,7 @@ std::vector<Ort::Value> ILaneDetector::Inference(const cv::Mat& image) {
 
 void ILaneDetector::DrawLanes(const std::vector<Lane>& lanes, cv::Mat& image) {
   assert(lanes.size() <= 4);
-  DrawLanePoints(lanes, {true, true, true, true}, image);
+  DrawLanePoints(lanes, {false, true, true, false}, image);
   DrawCenterLaneMask(lanes, image);
 }
 
