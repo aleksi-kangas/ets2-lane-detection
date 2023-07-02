@@ -6,6 +6,11 @@
 #include <span>
 #include <stdexcept>
 
+#include <xtensor/xadapt.hpp>
+#include <xtensor/xsort.hpp>
+#include <xtensor/xtensor.hpp>
+#include <xtensor/xview.hpp>
+
 #include "ufld/utils.h"
 
 namespace ufld::v1 {
@@ -41,79 +46,98 @@ PreprocessInfo LaneDetector::Preprocess(const cv::Mat& image) {
 std::vector<Lane> LaneDetector::PredictionsToLanes(
     const std::vector<Ort::Value>& outputs,
     const PreprocessInfo& preprocess_info) {
-  // https://github.com/cfzd/Ultra-Fast-Lane-Detection/blob/master/demo.py
-  const std::vector<uint32_t> predicted_cells = PredictedCells(outputs);
+  // We have exactly 1 output
+  assert(outputs.size() == 1);
+  const auto& output0 = outputs[0];  // e.g. [1, 201, 18, 4]
+  assert(output0.IsTensor());
+  assert(output0.GetTensorTypeAndShapeInfo().GetDimensionsCount() == 4);
+  assert(output0.GetTensorTypeAndShapeInfo().GetElementType() ==
+         ONNXTensorElementDataType::ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT);
+  assert(output0.GetTensorTypeAndShapeInfo().GetShape()[0] == 1);
+  assert(output0.GetTensorTypeAndShapeInfo().GetShape()[1] ==
+         config_->row_anchor_cell_count);
+  assert(output0.GetTensorTypeAndShapeInfo().GetShape()[2] ==
+         config_->row_anchor_count);
+  assert(output0.GetTensorTypeAndShapeInfo().GetShape()[3] == kLaneCount);
 
-  std::vector<Lane> lanes;
-  for (int32_t lane_index = 0; lane_index < kLaneCount; ++lane_index) {
-    Lane lane;
-    for (uint32_t class_index = 0; class_index < config_->cls_num_per_lane;
+  const std::span<const float> output0_raw(
+      output0.GetTensorData<float>(),
+      output0.GetTensorTypeAndShapeInfo().GetElementCount());
+  // Interpret 4D tensor as 3D tensor with shape e.g. [201, 18, 4]
+  const xt::xtensor<float, 3> output_tensor = xt::adapt(
+      output0_raw.data(), output0_raw.size(), xt::no_ownership(),
+      std::array<std::size_t, 3>{config_->row_anchor_cell_count,
+                                 config_->row_anchor_count, kLaneCount});
+
+  // As the last cell in each row signifies the absence of a lane,
+  // we should store the argmax of each row.
+  const xt::xtensor<std::size_t, 2> output_argmax =
+      xt::argmax(output_tensor, 0);  // e.g. [18, 4]
+
+  // Ideally, we would not use a temporary tensor here,
+  // but I don't know how to write the ufls::utils::SoftMax() in a way
+  // to accept both tensors and views.
+  const xt::xtensor<float, 3> output_tensor_grid =
+      xt::view(output_tensor, xt::range(xt::placeholders::_, -1), xt::all(),
+               xt::all());  // e.g. [200, 18, 4]
+
+  // Using mathematical expectation, we compute the lane locations in each row.
+  auto probabilities =
+      ufld::utils::SoftMax<0>(output_tensor_grid);  // e.g. [200, 18, 4]
+  auto indices = xt::arange<float>(
+                     1.0f, static_cast<float>(config_->row_anchor_cell_count))
+                     .reshape({-1, 1, 1});  // e.g. [200, 1, 1]
+  const xt::xtensor<float, 2> locations =
+      xt::sum(probabilities * indices, 0);  // e.g. [18, 4]
+
+  std::vector<Lane> lanes(kLaneCount);
+  for (uint32_t lane_index = 0; lane_index < kLaneCount; ++lane_index) {
+    const uint32_t kNotDetectedIndex = config_->row_anchor_cell_count - 1;
+    // Skip if the lane is not detected
+    const xt::xarray<std::size_t> detected_count = xt::count_nonzero(
+            xt::not_equal(xt::view(output_argmax, xt::all(), lane_index),
+                          kNotDetectedIndex));
+    if (detected_count(0) <= 2)
+      continue;
+
+    Lane& lane = lanes[lane_index];
+    lane.reserve(detected_count(0));
+
+    for (uint32_t class_index = 0; class_index < config_->row_anchor_count;
          ++class_index) {
-      const uint32_t kIndexOfNoLane = config_->griding_num - 1;
-      const auto index = class_index * kLaneCount + lane_index;
-      if (predicted_cells[index] == kIndexOfNoLane) {
+      if (output_argmax(class_index, lane_index) == kNotDetectedIndex)
         continue;
-      }
 
       // 1st) Coordinates in the input image (800 x 288)
-      const float kGridCellWidth = static_cast<float>(kInputWidth) /
-                                   static_cast<float>(config_->griding_num);
-      auto y = static_cast<int32_t>(config_->row_anchors[class_index]);
-      auto x = static_cast<int32_t>(static_cast<float>(predicted_cells[index]) *
-                                        kGridCellWidth +
-                                    kGridCellWidth * 0.5f);
+      auto y = static_cast<float>(config_->row_anchors[class_index]);
+      auto x = locations(class_index, lane_index) /
+               static_cast<float>(config_->row_anchor_cell_count) * kInputWidth;
 
       // 2nd) Coordinates in the cropped image before resizing
       const auto y_scale =
           static_cast<float>(preprocess_info.crop_area.height) /
           static_cast<float>(kInputHeight);
-      const auto x_scale =
-          static_cast<float>(preprocess_info.crop_area.width) /
-          static_cast<float>(kInputWidth);
-      y = static_cast<int32_t>(static_cast<float>(y) * y_scale);
-      x = static_cast<int32_t>(static_cast<float>(x) * x_scale);
+      const auto x_scale = static_cast<float>(preprocess_info.crop_area.width) /
+                           static_cast<float>(kInputWidth);
+      y *= y_scale;
+      x *= x_scale;
 
       // 3rd) Coordinates in the original image
-      const auto crop_offset_y = (preprocess_info.original_size.height -
-                                  preprocess_info.crop_area.height) /
-                                 2;
-      const auto crop_offset_x = (preprocess_info.original_size.width -
-                                  preprocess_info.crop_area.width) /
-                                 2;
+      const auto crop_offset_y =
+          (static_cast<float>(preprocess_info.original_size.height) -
+           static_cast<float>(preprocess_info.crop_area.height)) /
+          2.0f;
+      const auto crop_offset_x =
+          (static_cast<float>(preprocess_info.original_size.width) -
+           static_cast<float>(preprocess_info.crop_area.width)) /
+          2.0f;
       y += crop_offset_y;
       x += crop_offset_x;
 
       lane.emplace_back(static_cast<int32_t>(x), static_cast<int32_t>(y));
     }
-    lanes.push_back(lane);
   }
-
   return lanes;
-}
-
-std::vector<uint32_t> LaneDetector::PredictedCells(
-    const std::vector<Ort::Value>& outputs) const {
-  // https://github.com/cfzd/Ultra-Fast-Lane-Detection/blob/master/demo.py
-
-  // We have exactly 1 output
-  const auto& predictions = outputs[0];
-
-  const std::array<uint32_t, 4> kShape{
-      {1, config_->griding_num, config_->cls_num_per_lane, kLaneCount}};
-
-  const auto tensor_type_and_shape_info =
-      predictions.GetTensorTypeAndShapeInfo();
-  const auto shape = tensor_type_and_shape_info.GetShape();
-  assert(shape.size() == 4);
-  assert(shape[0] == kShape[0] && shape[1] == kShape[1] &&
-         shape[2] == kShape[2] && shape[3] == kShape[3]);
-
-  const std::span<const float> predictions_raw(
-      predictions.GetTensorData<float>(),
-      tensor_type_and_shape_info.GetElementCount());
-  const std::vector<float> probabilities =
-      utils::Softmax_1(predictions_raw, kShape);
-  return utils::ArgMax_1(std::span{probabilities}, kShape);
 }
 
 std::filesystem::path LaneDetector::ConstructModelPath(
