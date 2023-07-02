@@ -1,42 +1,34 @@
 #include "ufld/utils.h"
 
-#include <array>
-#include <cstdint>
-#include <vector>
-
 #include <gtest/gtest.h>
+#include <xtensor/xadapt.hpp>
+#include <xtensor/xtensor.hpp>
 
-// 3D tensor with dimensions 2x2x3
-// ---                 --- |
-// |   | ---      --- |    |
-// |   | [  1  2  3 ] |    |
-// |   | [  4  5  6 ] |    |
-// |   | ---      --- |    |
-// |   | ---      --- |    |
-// |   | [  7  8  9 ] |    |
-// |   | [ 10 11 12 ] |    |
-// |   | ---      --- |    |
-// ---                 --- |
-const std::vector<float> kTensor = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-const std::array<uint32_t, 4> kDimensions = {1, 2, 2, 3};
-
-TEST(UfldUtils, ArgMax_1) {
-  auto result = ufld::utils::ArgMax_1(kTensor, kDimensions);
-  std::vector<uint32_t> expected = {1, 1, 1, 1, 1, 1};
-  EXPECT_EQ(result, expected);
-}
-
-TEST(UfldUtils, Linspace) {
-  auto result = ufld::utils::Linspace(0, 1, 5);
-  std::vector<double> expected = {0, 0.25, 0.5, 0.75, 1};
-  EXPECT_EQ(result, expected);
-}
-
-TEST(UfldUtils, SoftMax_1) {
-  const auto result = ufld::utils::Softmax_1(kTensor, kDimensions);
-  const std::vector<float> expected = {
-      0.00247262302, 0.00247262302, 0.00247262325, 0.00247262325,
-      0.00247262325, 0.00247262325, 0.997527421,   0.997527361,
-      0.997527361,   0.997527421,   0.997527361,   0.997527421};
-  EXPECT_EQ(result, expected);
+TEST(UfldUtils, SoftMax) {
+  {  // 2D (1D)
+    const xt::xarray<float> a{{1, 2, 3, 6}};
+    const xt::xtensor<float, 2> tensor = xt::adapt(a, {1, 4});
+    const xt::xtensor<float, 2> result = ufld::utils::SoftMax<1>(tensor);
+    const xt::xarray<float> expected{
+        {0.00626879, 0.01704033, 0.04632042, 0.93037047}};
+    for (std::size_t i = 0; i < expected.shape()[0]; ++i) {
+      for (std::size_t j = 0; j < expected.shape()[1]; ++j) {
+        EXPECT_NEAR(result(i, j), expected(i, j), 1e-6f);
+      }
+    }
+  }
+  {  // 2D
+    const xt::xarray<float> a{{1, 2, 3, 6}, {2, 4, 5, 6}, {1, 2, 3, 6}};
+    const xt::xtensor<float, 2> tensor = xt::adapt(a, {3, 4});
+    const xt::xtensor<float, 2> result = ufld::utils::SoftMax<1>(tensor);
+    const xt::xarray<float> expected{
+        {0.00626879, 0.01704033, 0.04632042, 0.93037047},
+        {0.01203764, 0.08894682, 0.24178252, 0.65723302},
+        {0.00626879, 0.01704033, 0.04632042, 0.93037047}};
+    for (std::size_t i = 0; i < expected.shape()[0]; ++i) {
+      for (std::size_t j = 0; j < expected.shape()[1]; ++j) {
+        EXPECT_NEAR(result(i, j), expected(i, j), 1e-6f);
+      }
+    }
+  }
 }

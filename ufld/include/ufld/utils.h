@@ -1,35 +1,26 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-#include <span>
-#include <vector>
+#include <cstdlib>
+
+#include <xtensor/xmanipulation.hpp>
+#include <xtensor/xmath.hpp>
+#include <xtensor/xtensor.hpp>
 
 namespace ufld::utils {
 /**
- * Compute the argmax of the second dimension of a 4D tensor.
- * @param input 4D tensor as contiguous 1D span
- * @param dimensions dimensions of the 4D tensor
- * @return argmax of the second dimension of the 4D tensor
+ * Compute softmax of the given tensor along the given axis.
+ * @tparam A axis
+ * @tparam T data type
+ * @tparam D tensor dimension
+ * @param tensor input tensor
+ * @return softmax of the given tensor along the given axis
  */
-std::vector<uint32_t> ArgMax_1(std::span<const float> input,
-                               const std::array<uint32_t, 4>& dimensions);
+// clang-format off
+template <std::size_t A, typename T, std::size_t D>
+requires((std::is_same_v<T, float> || std::is_same_v<T, double>) && D > 1 && A < D)
+auto SoftMax(const xt::xtensor<T, D>& tensor) {
+  return xt::exp(tensor) / xt::expand_dims(xt::sum(xt::exp(tensor), A), A);
+}
+// clang-format on
 
-/**
- * Generate a vector of evenly spaced numbers over a specified interval [start, end].
- * @param begin start of the interval
- * @param end end of the interval
- * @param count how many numbers to generate
- * @return a vector of evenly spaced numbers over a specified interval [start, end]
- */
-std::vector<double> Linspace(double begin, double end, uint32_t count);
-
-/**
- * Compute the softmax of the second dimension of a 4D tensor.
- * @param input 4D tensor as contiguous 1D span
- * @param dimensions dimensions of the 4D tensor
- * @return argmax of the second dimension of the 4D tensor
- */
-std::vector<float> Softmax_1(std::span<const float> input,
-                             const std::array<uint32_t, 4>& dimensions);
 }  // namespace ufld::utils
