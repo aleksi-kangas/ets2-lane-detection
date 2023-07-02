@@ -21,12 +21,10 @@ enum class Variant { kCULane, kTuSimple };
 using Lane = std::vector<cv::Point>;
 
 struct PreprocessInfo {
-  cv::Mat preprocessed_image;
-  cv::Size original_size;
-  cv::Size cropped_size;
+  cv::Mat preprocessed_image{};
+  cv::Size original_size{};
+  cv::Rect crop_area{};
 };
-
-cv::Mat VisualizeLanes(const std::vector<Lane>& lanes, const cv::Mat& image);
 
 class ILaneDetector {
  public:
@@ -38,7 +36,8 @@ class ILaneDetector {
   ILaneDetector(ILaneDetector&&) = delete;
   ILaneDetector& operator=(ILaneDetector&&) = delete;
 
-  [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image);
+  [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image,
+                                         cv::Mat* preview = nullptr);
 
   [[nodiscard]] std::filesystem::path ModelDirectory() const;
   [[nodiscard]] Version ModelVersion() const;
@@ -69,8 +68,8 @@ class ILaneDetector {
   std::vector<std::vector<float>> output_tensor_data_{};
 
   [[nodiscard]] virtual PreprocessInfo Preprocess(const cv::Mat& image) = 0;
-  [[nodiscard]] static cv::Mat CenterCrop(const cv::Mat& image,
-                                          float input_aspect_ratio);
+  [[nodiscard]] static cv::Rect ComputeCenterCrop(const cv::Mat& image,
+                                                  float input_aspect_ratio);
   [[nodiscard]] static cv::Mat ColorPreprocess(const cv::Mat& image);
 
   [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(
@@ -85,6 +84,9 @@ class ILaneDetector {
   [[nodiscard]] Ort::Value InitializeInputTensor(const cv::Mat& image);
   [[nodiscard]] std::vector<Ort::Value> InitializeOutputTensors();
   [[nodiscard]] std::vector<Ort::Value> Inference(const cv::Mat& image);
+
+  static void DrawLanes(const std::vector<Lane>& lanes, cv::Mat& image);
+  static void DrawInputArea(cv::Rect inputArea, cv::Mat& image);
 };
 
 }  // namespace ufld
