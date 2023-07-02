@@ -134,7 +134,7 @@ std::vector<Lane> LaneDetector::PredictionsToLanes(
       y += crop_offset_y;
       x += crop_offset_x;
 
-      lane.emplace_back(static_cast<int32_t>(x), static_cast<int32_t>(y));
+      lane.emplace_back(x, y);
     }
   }
   return lanes;

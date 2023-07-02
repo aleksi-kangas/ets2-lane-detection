@@ -18,7 +18,7 @@ namespace v1 {
 enum class Variant { kCULane, kTuSimple };
 }  // namespace v1
 
-using Lane = std::vector<cv::Point>;
+using Lane = std::vector<cv::Point2f>;
 
 struct PreprocessInfo {
   cv::Mat preprocessed_image{};
