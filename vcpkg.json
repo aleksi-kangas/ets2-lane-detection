@@ -21,6 +21,14 @@
         "dx11-binding",
         "win32-binding"
       ]
+    },
+    {
+      "name": "xtensor",
+      "version>=": "0.24.0",
+      "platform": "x64 & windows",
+      "features": [
+        "xsimd"
+      ]
     }
   ]
 }
