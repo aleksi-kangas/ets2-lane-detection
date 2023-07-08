@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.25)
 project(ETS2_Lane_Detection)
 
 # Copy the OnnxRuntime cmake files to the vcpkg installed directory
@@ -14,15 +14,19 @@ if (NOT MSVC)
     message(FATAL_ERROR "Only MSVC is supported")
 endif ()
 
-find_package(OpenCV REQUIRED)
+# Enable support for C++20 modules
+# CMake 3.25
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "3c375311-a3c9-4396-a187-3227ef642046")
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 
-add_subdirectory(dx11)
+add_subdirectory(capture)
 add_subdirectory(ets2ld)
 add_subdirectory(ufld)
 
 add_executable(${PROJECT_NAME} main.cpp)
-target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE dx11 ets2ld ufld ${OpenCV_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE)
+target_link_libraries(${PROJECT_NAME} PRIVATE ets2ld)
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 

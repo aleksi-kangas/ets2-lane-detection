@@ -1,4 +1,6 @@
-#include "ets2ld/application.h"
+#include <compare>
+
+import ets2ld;
 
 int main() {
   ets2ld::Application ets2_lane_detection{};
