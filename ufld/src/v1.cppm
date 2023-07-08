@@ -2,6 +2,7 @@ module;
 
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <span>
@@ -45,21 +46,28 @@ ufld::v1::LaneDetector::LaneDetector(
   }();
 }
 
-ufld::PreprocessInfo ufld::v1::LaneDetector::Preprocess(const cv::Mat& image) {
+ufld::PreProcessResult ufld::v1::LaneDetector::PreProcess(
+    const cv::Mat& image) const {
+  const auto start_time = std::chrono::high_resolution_clock::now();
+
   const cv::Rect crop_area = ComputeCenterCrop(image, kInputAspectRatio);
   cv::Mat cropped_image = image(crop_area);
   cv::Mat resized_image{};
   cv::resize(cropped_image, resized_image, cv::Size{kInputWidth, kInputHeight});
   return {
-      .preprocessed_image = ColorPreprocess(resized_image),
+      .processed_image = ColorPreProcess(resized_image),
       .original_size = image.size(),
       .crop_area = crop_area,
+      .duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::high_resolution_clock::now() - start_time),
   };
 }
 
-std::vector<ufld::Lane> ufld::v1::LaneDetector::PredictionsToLanes(
+ufld::PostProcessResult ufld::v1::LaneDetector::PostProcess(
     const std::vector<Ort::Value>& outputs,
-    const PreprocessInfo& preprocess_info) {
+    const PreProcessResult& pre_process_result) const {
+  const auto start_time = std::chrono::high_resolution_clock::now();
+
   // We have exactly 1 output
   assert(outputs.size() == 1);
   const auto& output0 = outputs[0];  // e.g. [1, 201, 18, 4]
@@ -129,21 +137,22 @@ std::vector<ufld::Lane> ufld::v1::LaneDetector::PredictionsToLanes(
 
       // 2nd) Coordinates in the cropped image before resizing
       const auto y_scale =
-          static_cast<float>(preprocess_info.crop_area.height) /
+          static_cast<float>(pre_process_result.crop_area.height) /
           static_cast<float>(kInputHeight);
-      const auto x_scale = static_cast<float>(preprocess_info.crop_area.width) /
-                           static_cast<float>(kInputWidth);
+      const auto x_scale =
+          static_cast<float>(pre_process_result.crop_area.width) /
+          static_cast<float>(kInputWidth);
       y *= y_scale;
       x *= x_scale;
 
       // 3rd) Coordinates in the original image
       const auto crop_offset_y =
-          (static_cast<float>(preprocess_info.original_size.height) -
-           static_cast<float>(preprocess_info.crop_area.height)) /
+          (static_cast<float>(pre_process_result.original_size.height) -
+           static_cast<float>(pre_process_result.crop_area.height)) /
           2.0f;
       const auto crop_offset_x =
-          (static_cast<float>(preprocess_info.original_size.width) -
-           static_cast<float>(preprocess_info.crop_area.width)) /
+          (static_cast<float>(pre_process_result.original_size.width) -
+           static_cast<float>(pre_process_result.crop_area.width)) /
           2.0f;
       y += crop_offset_y;
       x += crop_offset_x;
@@ -151,7 +160,12 @@ std::vector<ufld::Lane> ufld::v1::LaneDetector::PredictionsToLanes(
       lane.emplace_back(x, y);
     }
   }
-  return lanes;
+
+  ufld::PostProcessResult result{};
+  result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::steady_clock::now() - start_time);
+  result.lanes = std::move(lanes);
+  return result;
 }
 
 std::filesystem::path ConstructModelPath(const std::filesystem::path& directory,

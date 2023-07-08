@@ -1,10 +1,13 @@
 module;
 
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <mutex>
 #include <numeric>
+#include <optional>
 #include <stdexcept>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -15,17 +18,24 @@ module ufld.base;
 
 import ufld.utils;
 
-std::vector<ufld::Lane> ufld::ILaneDetector::Detect(const cv::Mat& image,
-                                                    cv::Mat* preview) {
+ufld::LaneDetectionResult ufld::ILaneDetector::Detect(
+    const cv::Mat& image, std::optional<cv::Mat> preview) {
   std::lock_guard<std::mutex> lock{detection_mutex_};
-  const auto preprocess_info = Preprocess(image);
-  const auto outputs = Inference(preprocess_info.preprocessed_image);
-  auto lanes = PredictionsToLanes(outputs, preprocess_info);
-  if (preview) {
-    ufld::utils::DrawLanes(lanes, *preview);
-    ufld::utils::DrawInputArea(preprocess_info.crop_area, *preview);
+  const auto pre_process_result = PreProcess(image);
+  const auto inference_result = Inference(pre_process_result.processed_image);
+  auto post_process_result =
+      PostProcess(inference_result.outputs, pre_process_result);
+
+  if (preview.has_value()) {
+    ufld::utils::DrawLanes(post_process_result.lanes, preview.value());
+    ufld::utils::DrawInputArea(pre_process_result.crop_area, preview.value());
   }
-  return lanes;
+
+  return {.lanes = std::move(post_process_result.lanes),
+          .preview = std::move(preview.value()),
+          .pre_process_duration = pre_process_result.duration,
+          .inference_duration = inference_result.duration,
+          .post_process_duration = post_process_result.duration};
 }
 
 std::filesystem::path ufld::ILaneDetector::ModelDirectory() const {
@@ -92,7 +102,7 @@ cv::Rect ufld::ILaneDetector::ComputeCenterCrop(const cv::Mat& image,
   }
 }
 
-cv::Mat ufld::ILaneDetector::ColorPreprocess(const cv::Mat& image) {
+cv::Mat ufld::ILaneDetector::ColorPreProcess(const cv::Mat& image) {
   cv::Mat converted_image;
   cv::cvtColor(image, converted_image, cv::COLOR_RGBA2RGB);
   converted_image.convertTo(converted_image, CV_32FC3, 1.0f / 255.0f);
@@ -204,7 +214,9 @@ std::vector<Ort::Value> ufld::ILaneDetector::InitializeOutputTensors() {
   return output_tensors;
 }
 
-std::vector<Ort::Value> ufld::ILaneDetector::Inference(const cv::Mat& image) {
+ufld::InferenceResult ufld::ILaneDetector::Inference(const cv::Mat& image) {
+  const auto start_time = std::chrono::high_resolution_clock::now();
+
   auto input_tensor = InitializeInputTensor(image);
   auto output_tensors = InitializeOutputTensors();
 
@@ -222,5 +234,10 @@ std::vector<Ort::Value> ufld::ILaneDetector::Inference(const cv::Mat& image) {
   session_.Run(Ort::RunOptions{nullptr}, &input_name, &input_tensor, 1,
                OutputNamesToRaw().data(), output_tensors.data(),
                output_tensors.size());
-  return output_tensors;
+
+  ufld::InferenceResult result{};
+  result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::steady_clock::now() - start_time);
+  result.outputs = std::move(output_tensors);
+  return result;
 }

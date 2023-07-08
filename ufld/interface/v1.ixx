@@ -47,16 +47,16 @@ class LaneDetector final : public ILaneDetector {
    * @param image
    * @return
    */
-  [[nodiscard]] ufld::PreprocessInfo Preprocess(const cv::Mat& image) override;
+  [[nodiscard]] ufld::PreProcessResult PreProcess(const cv::Mat& image) const override;
 
   /**
    *
    * @param outputs
-   * @param preprocess_info
+   * @param pre_process_result
    * @return
    */
-  [[nodiscard]] std::vector<Lane> PredictionsToLanes(
+  [[nodiscard]] ufld::PostProcessResult PostProcess(
       const std::vector<Ort::Value>& outputs,
-      const PreprocessInfo& preprocess_info) override;
+      const PreProcessResult& pre_process_result) const override;
 };
 }  // namespace ufld::v1

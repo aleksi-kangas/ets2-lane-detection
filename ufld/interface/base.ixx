@@ -1,7 +1,9 @@
 module;
 
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -19,10 +21,29 @@ enum class Variant { kCULane, kTuSimple };
 
 using Lane = std::vector<cv::Point2f>;
 
-struct PreprocessInfo {
-  cv::Mat preprocessed_image{};
+struct PreProcessResult {
+  cv::Mat processed_image{};
   cv::Size original_size{};
   cv::Rect crop_area{};
+  std::chrono::milliseconds duration{0};
+};
+
+struct InferenceResult {
+  std::vector<Ort::Value> outputs{};
+  std::chrono::milliseconds duration{0};
+};
+
+struct PostProcessResult {
+  std::vector<Lane> lanes{};
+  std::chrono::milliseconds duration{0};
+};
+
+struct LaneDetectionResult {
+  std::vector<Lane> lanes{};
+  std::optional<cv::Mat> preview{std::nullopt};
+  std::chrono::milliseconds pre_process_duration{0};
+  std::chrono::milliseconds inference_duration{0};
+  std::chrono::milliseconds post_process_duration{0};
 };
 
 class ILaneDetector {
@@ -41,8 +62,8 @@ class ILaneDetector {
    * @param preview
    * @return
    */
-  [[nodiscard]] std::vector<Lane> Detect(const cv::Mat& image,
-                                         cv::Mat* preview = nullptr);
+  [[nodiscard]] LaneDetectionResult Detect(
+      const cv::Mat& image, std::optional<cv::Mat> preview = std::nullopt);
 
   /**
    *
@@ -98,7 +119,18 @@ class ILaneDetector {
    * @param image
    * @return
    */
-  [[nodiscard]] virtual PreprocessInfo Preprocess(const cv::Mat& image) = 0;
+  [[nodiscard]] virtual PreProcessResult PreProcess(
+      const cv::Mat& image) const = 0;
+
+  /**
+   *
+   * @param outputs
+   * @param pre_process_result
+   * @return
+   */
+  [[nodiscard]] virtual PostProcessResult PostProcess(
+      const std::vector<Ort::Value>& outputs,
+      const PreProcessResult& pre_process_result) const = 0;
 
   /**
    *
@@ -114,11 +146,7 @@ class ILaneDetector {
    * @param image
    * @return
    */
-  [[nodiscard]] static cv::Mat ColorPreprocess(const cv::Mat& image);
-
-  [[nodiscard]] virtual std::vector<Lane> PredictionsToLanes(
-      const std::vector<Ort::Value>& outputs,
-      const PreprocessInfo& preprocess_info) = 0;
+  [[nodiscard]] static cv::Mat ColorPreProcess(const cv::Mat& image);
 
  private:
   /**
@@ -155,7 +183,7 @@ class ILaneDetector {
    * @param image
    * @return
    */
-  [[nodiscard]] std::vector<Ort::Value> Inference(const cv::Mat& image);
+  [[nodiscard]] InferenceResult Inference(const cv::Mat& image);
 };
 
 }  // namespace ufld

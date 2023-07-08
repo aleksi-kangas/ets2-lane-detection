@@ -36,12 +36,7 @@ class Application {
   std::atomic<bool> stop_lane_detection_signal_{false};
   std::thread lane_detection_thread_{};
 
-  struct LaneDetectionResult {
-    std::vector<ufld::Lane> lanes;
-    cv::Mat frame;
-    cv::Mat preview;
-  };
-  LaneDetectionResult lane_detection_result_{};
+  ufld::LaneDetectionResult lane_detection_result_{};
   std::atomic<bool> lane_detection_result_available_{false};
   std::mutex lane_detection_mutex_{};
 

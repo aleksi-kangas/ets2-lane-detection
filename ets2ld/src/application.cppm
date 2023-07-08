@@ -1,6 +1,7 @@
 module;
 
 #include <atomic>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -34,13 +35,23 @@ void ets2ld::Application::Run() {
     ui_.RenderSettings(lane_detection_initializing_, lane_detection_active_);
 
     if (lane_detection_active_ && lane_detection_result_available_) {
-      LaneDetectionResult result{};
+      ufld::LaneDetectionResult result{};
       {
         std::lock_guard<std::mutex> lock{lane_detection_mutex_};
         result = std::move(lane_detection_result_);
         lane_detection_result_available_ = false;
       }
-      ui_.UpdatePreview(result.preview);
+      if (result.preview.has_value()) {
+        ui_.UpdatePreview(result.preview.value());
+      }
+
+      // TODO Show times in UI
+      std::cout << "Pre-processing time: "
+                << result.pre_process_duration.count() << " ms\n";
+      std::cout << "Inference time: " << result.inference_duration.count()
+                << " ms\n";
+      std::cout << "Post-processing time: "
+                << result.post_process_duration.count() << " ms\n";
     }
 
     if (lane_detection_initializing_ || lane_detection_active_) {
@@ -81,11 +92,8 @@ void ets2ld::Application::LaneDetectionThread(
 
   while (!stop_lane_detection_signal_) {
     const cv::Mat frame = camera->GetNewestFrame();
-
-    LaneDetectionResult result{};
-    result.frame = frame;
-    result.preview = frame.clone();
-    result.lanes = lane_detector_->Detect(frame, &result.preview);
+    ufld::LaneDetectionResult result =
+        lane_detector_->Detect(frame, frame.clone());
     {
       std::lock_guard<std::mutex> lock{lane_detection_mutex_};
       lane_detection_result_ = std::move(result);
