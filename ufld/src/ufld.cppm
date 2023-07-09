@@ -8,12 +8,14 @@ module;
 module ufld;
 
 std::unique_ptr<ufld::ILaneDetector> ufld::MakeLaneDetector(
-    const std::filesystem::path& directory, ufld::Version version,
-    std::variant<ufld::v1::Variant> variant) {
-  switch (version) {
+    const ufld::Settings& settings) {
+  switch (settings.version) {
     case ufld::Version::kV1:
+      if (!std::holds_alternative<ufld::v1::Variant>(settings.variant))
+        throw std::invalid_argument{"Invalid variant"};
       return std::make_unique<ufld::v1::LaneDetector>(
-          directory, std::get<ufld::v1::Variant>(variant));
+          settings.model_directory,
+          std::get<ufld::v1::Variant>(settings.variant));
     default:
       throw std::runtime_error{"Unsupported version"};
   }
