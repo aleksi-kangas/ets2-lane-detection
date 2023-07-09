@@ -123,7 +123,7 @@ void ufld::ILaneDetector::InitializeSession(
   session_options.SetIntraOpNumThreads(1);
 
   try {  // TensorRT
-    OrtTensorRTProviderOptions tensorrt_options{};
+    Ort::OrtTensorRTProviderOptions tensorrt_options{};
     tensorrt_options.device_id = 0;
     // "TensorRT option trt_max_partition_iterations must be a positive integer value. Set it to 1000"
     tensorrt_options.trt_max_partition_iterations = 1000;
@@ -131,9 +131,19 @@ void ufld::ILaneDetector::InitializeSession(
     tensorrt_options.trt_min_subgraph_size = 1;
     // "TensorRT option trt_max_workspace_size must be a positive integer value. Set it to 1073741824 (1GB)"
     tensorrt_options.trt_max_workspace_size = 1073741824;
+    // Enable DLA
+    tensorrt_options.trt_dla_enable = 1;
     session_options.AppendExecutionProvider_TensorRT(tensorrt_options);
   } catch (const Ort::Exception& e) {
     std::cerr << "TensorRT is not available: " << e.what() << std::endl;
+  }
+
+  try {  // CUDA
+    Ort::OrtCUDAProviderOptions cuda_options{};
+    cuda_options.device_id = 0;
+    session_options.AppendExecutionProvider_CUDA(cuda_options);
+  } catch (const Ort::Exception& e) {
+    std::cerr << "CUDA is not available: " << e.what() << std::endl;
   }
 
   try {
