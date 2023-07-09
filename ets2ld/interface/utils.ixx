@@ -38,12 +38,6 @@ CreateDeviceAndSwapChain(HWND hwnd);
  */
 CComPtr<ID3D11RenderTargetView> CreateRenderTargetView(
     ID3D11Device* device, IDXGISwapChain* swap_chain);
-
-/**
- *
- * @return
- */
-std::pair<int32_t, int32_t> QueryPrimaryMonitorResolution();
 }  // namespace ets2ld::utils
 
 export namespace ImGui {

@@ -111,10 +111,6 @@ CComPtr<ID3D11RenderTargetView> ets2ld::utils::CreateRenderTargetView(
   return render_target_view;
 }
 
-std::pair<int32_t, int32_t> ets2ld::utils::QueryPrimaryMonitorResolution() {
-  return {GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
-}
-
 void ImGui::Spinner(const char* label, float radius, float thickness,
                     const ImU32& color) {
   // https://github.com/ocornut/imgui/issues/1901#issue-335266223

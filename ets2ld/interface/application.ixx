@@ -9,7 +9,7 @@ module;
 
 export module ets2ld.application;
 
-import ets2ld.settings;
+import capture;
 import ets2ld.ui;
 import ufld;
 
@@ -27,8 +27,9 @@ class Application {
   void Run();
 
  private:
-  Settings settings_{};
-  UI ui_{settings_};
+  capture::Settings capture_settings_{};
+  ufld::Settings ufld_settings_{};
+  UI ui_{};
 
   std::unique_ptr<ufld::ILaneDetector> lane_detector_{nullptr};
   std::atomic<bool> lane_detection_initializing_{false};
@@ -40,10 +41,13 @@ class Application {
   std::atomic<bool> lane_detection_result_available_{false};
   std::mutex lane_detection_mutex_{};
 
-  void InitializeAndStartLaneDetector(const Settings& settings);
-  void LaneDetectionThread(CaptureSettings capture_settings);
+  void LaneDetectorInitializerThread(capture::Settings capture_settings,
+                                     ufld::Settings ufld_settings);
+  void LaneDetectorThread(capture::Settings capture_settings);
 
-  void HandleLaneDetectionEnableChanged();
+  void HandleLaneDetectionEnableChanged(bool enable,
+                                        capture::Settings capture_settings,
+                                        ufld::Settings ufld_settings);
 };
 
 }  // namespace ets2ld

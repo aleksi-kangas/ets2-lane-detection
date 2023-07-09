@@ -14,12 +14,13 @@ module;
 
 export module ets2ld.ui;
 
-import ets2ld.settings;
+import capture;
+import ufld;
 
 export namespace ets2ld {
 class UI {
  public:
-  explicit UI(Settings& settings);
+  explicit UI();
   ~UI();
 
   UI(const UI&) = delete;
@@ -37,12 +38,14 @@ class UI {
 
   void EndFrame();
 
-  void SetOnLaneDetectionEnableChanged(std::function<void()> callback);
+  void SetOnLaneDetectionEnableChanged(
+      std::function<void(bool, capture::Settings, ufld::Settings)> callback);
 
   void ShowErrorMessage(const std::string& message);
 
  private:
-  Settings& settings_;
+  capture::Settings capture_settings_{};
+  ufld::Settings ufld_settings_{};
 
   WNDCLASSEXW wc_{};
   HWND hwnd_{nullptr};
@@ -55,7 +58,8 @@ class UI {
   CComPtr<ID3D11ShaderResourceView> preview_srv_{nullptr};
 
   // Callbacks
-  std::function<void()> on_lane_detection_enable_changed_{};
+  std::function<void(bool, capture::Settings, ufld::Settings)>
+      on_lane_detection_enable_changed_{};
 
   void CreateUIWindow();
 

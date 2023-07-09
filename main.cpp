@@ -1,5 +1,6 @@
 #include <compare>
 
+import capture;
 import ets2ld;
 
 int main() {

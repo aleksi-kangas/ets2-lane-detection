@@ -17,14 +17,16 @@ module;
 
 module ets2ld.ui;
 
+import capture;
 import ets2ld.utils;
+import ufld;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
                                                              UINT msg,
                                                              WPARAM wParam,
                                                              LPARAM lParam);
 
-ets2ld::UI::UI(Settings& settings) : settings_{settings} {
+ets2ld::UI::UI() {
   CreateUIWindow();
 
   auto [device, swap_chain, device_context] =
@@ -65,7 +67,7 @@ bool ets2ld::UI::BeginFrame() {
 }
 
 void ets2ld::UI::RenderSettings(bool lane_detection_initializing,
-                        bool lane_detection_active) {
+                                bool lane_detection_active) {
   ImGui::Begin("Settings");
   {
     RenderSettingsGeneral(lane_detection_initializing);
@@ -136,7 +138,8 @@ void ets2ld::UI::EndFrame() {
   swap_chain_->Present(1, 0);  // VSYNC
 }
 
-void ets2ld::UI::SetOnLaneDetectionEnableChanged(std::function<void()> callback) {
+void ets2ld::UI::SetOnLaneDetectionEnableChanged(
+    std::function<void(bool, capture::Settings, ufld::Settings)> callback) {
   on_lane_detection_enable_changed_ = std::move(callback);
 }
 
@@ -162,7 +165,7 @@ void ets2ld::UI::CreateUIWindow() {
 }
 
 LRESULT ets2ld::UI::WndProcWrapper(HWND hwnd, UINT message, WPARAM wparam,
-                           LPARAM lparam) {
+                                   LPARAM lparam) {
   if (message == WM_NCCREATE) {
     auto cs = reinterpret_cast<CREATESTRUCT*>(lparam);
     ::SetWindowLongPtrW(hwnd, GWLP_USERDATA,
@@ -175,7 +178,8 @@ LRESULT ets2ld::UI::WndProcWrapper(HWND hwnd, UINT message, WPARAM wparam,
   return ::DefWindowProcW(hwnd, message, wparam, lparam);
 }
 
-LRESULT ets2ld::UI::WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
+LRESULT ets2ld::UI::WndProc(HWND hwnd, UINT message, WPARAM wparam,
+                            LPARAM lparam) {
   if (ImGui_ImplWin32_WndProcHandler(hwnd, message, wparam, lparam))
     return true;
 
@@ -219,16 +223,18 @@ void ets2ld::UI::RenderSettingsGeneral(bool lane_detection_initializing) {
   ImGui::SeparatorText("General");
   ImGui::BeginDisabled(lane_detection_initializing);
   {
-    if (ImGui::Checkbox("Enable", &settings_.enable_lane_detection)) {
+    static bool lane_detection_enabled{false};
+    if (ImGui::Checkbox("Enable", &lane_detection_enabled)) {
       if (on_lane_detection_enable_changed_)
-        on_lane_detection_enable_changed_();
+        on_lane_detection_enable_changed_(lane_detection_enabled,
+                                          capture_settings_, ufld_settings_);
     }
   }
   ImGui::EndDisabled();
 }
 
 void ets2ld::UI::RenderSettingsModel(bool lane_detection_initializing,
-                             bool lane_detection_active) {
+                                     bool lane_detection_active) {
   ImGui::SeparatorText("Model");
   ImGui::BeginDisabled(lane_detection_initializing || lane_detection_active);
   {
@@ -268,21 +274,21 @@ void ets2ld::UI::RenderSettingsModel(bool lane_detection_initializing,
         assert(false);
     }
 
-    settings_.model.directory = chosen_model_directory;
+    ufld_settings_.model_directory = chosen_model_directory;
     switch (chosen_model_version) {
       case 0:
         static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
-        settings_.model.version = ufld::Version::kV1;
+        ufld_settings_.version = ufld::Version::kV1;
         switch (chosen_model_variant_v1) {
           case 0:
             static_assert(0 ==
                           static_cast<int32_t>(ufld::v1::Variant::kCULane));
-            settings_.model.variant = ufld::v1::Variant::kCULane;
+            ufld_settings_.variant = ufld::v1::Variant::kCULane;
             break;
           case 1:
             static_assert(1 ==
                           static_cast<int32_t>(ufld::v1::Variant::kTuSimple));
-            settings_.model.variant = ufld::v1::Variant::kTuSimple;
+            ufld_settings_.variant = ufld::v1::Variant::kTuSimple;
             break;
           default:
             assert(false);
@@ -296,22 +302,25 @@ void ets2ld::UI::RenderSettingsModel(bool lane_detection_initializing,
 }
 
 void ets2ld::UI::RenderSettingsCapture(bool lane_detection_initializing,
-                               bool lane_detection_active) {
+                                       bool lane_detection_active) {
   static const auto kPrimaryMonitorResolution =
-      utils::QueryPrimaryMonitorResolution();
+      capture::utils::QueryPrimaryMonitorResolution();
 
   ImGui::SeparatorText("Capture");
   ImGui::BeginDisabled(lane_detection_initializing || lane_detection_active);
   {
-    ImGui::SliderInt("X", &settings_.capture.x, 0,
-                     kPrimaryMonitorResolution.first - settings_.capture.width);
     ImGui::SliderInt(
-        "Y", &settings_.capture.y, 0,
-        kPrimaryMonitorResolution.second - settings_.capture.height);
-    ImGui::SliderInt("Width", &settings_.capture.width, 1,
-                     kPrimaryMonitorResolution.first - settings_.capture.x);
-    ImGui::SliderInt("Height", &settings_.capture.height, 1,
-                     kPrimaryMonitorResolution.second - settings_.capture.y);
+        "X", &capture_settings_.region.x, 0,
+        kPrimaryMonitorResolution.first - capture_settings_.region.width);
+    ImGui::SliderInt(
+        "Y", &capture_settings_.region.y, 0,
+        kPrimaryMonitorResolution.second - capture_settings_.region.height);
+    ImGui::SliderInt(
+        "Width", &capture_settings_.region.width, 1,
+        kPrimaryMonitorResolution.first - capture_settings_.region.x);
+    ImGui::SliderInt(
+        "Height", &capture_settings_.region.height, 1,
+        kPrimaryMonitorResolution.second - capture_settings_.region.y);
   }
   ImGui::EndDisabled();
 }

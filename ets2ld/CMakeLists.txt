@@ -20,7 +20,6 @@ target_sources(${PROJECT_NAME} PUBLIC
         FILES
         interface/application.ixx
         interface/ets2ld.ixx
-        interface/settings.ixx
         interface/ui.ixx
         interface/utils.ixx)
 target_sources(${PROJECT_NAME} PRIVATE
