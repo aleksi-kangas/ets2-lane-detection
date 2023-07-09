@@ -3,7 +3,6 @@ module;
 #include <cstdint>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <vector>
 
 #include <atlbase.h>
@@ -15,16 +14,23 @@ export module capture;
 
 export import capture.camera;
 import capture.device;
+export import capture.utils;
 
 export namespace capture {
+struct Settings {
+  std::uint32_t device_index{0};
+  std::uint32_t output_index{0};
+  std::uint32_t frame_buffer_capacity{16};
+  cv::Rect region{0, 0, utils::QueryPrimaryMonitorResolution().first,
+                  utils::QueryPrimaryMonitorResolution().second};
+};
+
 class CaptureManager {
  public:
   CaptureManager();
   ~CaptureManager();
 
-  Camera* Start(std::uint32_t device_index, std::uint32_t output_index,
-                std::uint32_t frame_buffer_capacity = 16,
-                std::optional<cv::Rect> region = std::nullopt);
+  Camera* Start(const Settings& settings);
   void Stop();
 
  private:

@@ -29,7 +29,7 @@ std::unique_ptr<capture::Camera> capture::CaptureManager::camera_{nullptr};
 
 capture::CaptureManager::CaptureManager() {
   auto Initialize = []() {
-    dxgi_adapters_ = EnumerateDXGIAdapters();
+    dxgi_adapters_ = capture::utils::EnumerateDXGIAdapters();
     for (const auto& dxgi_adapter : dxgi_adapters_) {
       Device device{dxgi_adapter};
       if (device.DXGIOutputCount() == 0)
@@ -49,12 +49,11 @@ capture::CaptureManager::~CaptureManager() {
 }
 
 capture::Camera* capture::CaptureManager::Start(
-    uint32_t device_index, uint32_t output_index,
-    uint32_t frame_buffer_capacity, std::optional<cv::Rect> region) {
+    const capture::Settings& settings) {
   std::lock_guard<std::mutex> lock{mutex_};
 
   auto Initialize = []() {
-    dxgi_adapters_ = EnumerateDXGIAdapters();
+    dxgi_adapters_ = capture::utils::EnumerateDXGIAdapters();
     for (const auto& dxgi_adapter : dxgi_adapters_) {
       Device device{dxgi_adapter};
       if (device.DXGIOutputCount() == 0)
@@ -64,31 +63,26 @@ capture::Camera* capture::CaptureManager::Start(
   };
   std::call_once(once_flag_, Initialize);
 
-  if (camera_ != nullptr) {
-    assert(false);
-    return nullptr;
-  }
-  if (device_index >= devices_.size()) {
-    assert(false);
-    return nullptr;
-  }
-  if (output_index >= devices_[device_index].DXGIOutputCount()) {
-    assert(false);
-    return nullptr;
-  }
+  if (camera_ != nullptr)
+    throw std::logic_error{"Camera is already started."};
+  if (settings.device_index >= devices_.size())
+    throw std::out_of_range{"Device index is out of range."};
+  if (settings.output_index >=
+      devices_[settings.device_index].DXGIOutputCount())
+    throw std::out_of_range{"Output index is out of range."};
+
   camera_ = std::make_unique<capture::Camera>(
-      devices_[device_index], devices_[device_index].DXGIOutput(output_index),
-      frame_buffer_capacity, region);
+      devices_[settings.device_index],
+      devices_[settings.device_index].DXGIOutput(settings.output_index),
+      settings.frame_buffer_capacity, settings.region);
   camera_->StartCapture();
   return camera_.get();
 }
 
 void capture::CaptureManager::Stop() {
   std::lock_guard<std::mutex> lock{mutex_};
-  if (camera_ == nullptr) {
-    assert(false);
-    return;
-  }
+  if (camera_ == nullptr)
+    throw std::logic_error{"Camera is not started."};
   camera_->StopCapture();
   camera_ = nullptr;
 }

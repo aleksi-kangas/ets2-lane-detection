@@ -1,6 +1,8 @@
 module;
 
+#include <cstdint>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 #include <atlbase.h>
@@ -8,7 +10,7 @@ module;
 
 module capture.utils;
 
-std::vector<CComPtr<IDXGIAdapter1>> capture::EnumerateDXGIAdapters() {
+std::vector<CComPtr<IDXGIAdapter1>> capture::utils::EnumerateDXGIAdapters() {
 
   CComPtr<IDXGIFactory1> dxgi_factory1{nullptr};
   HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1),
@@ -25,4 +27,9 @@ std::vector<CComPtr<IDXGIAdapter1>> capture::EnumerateDXGIAdapters() {
     dxgi_adapter1.Release();
   }
   return dxgi_adapters;
+}
+
+std::pair<std::int32_t, std::int32_t>
+capture::utils::QueryPrimaryMonitorResolution() {
+  return {GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
 }

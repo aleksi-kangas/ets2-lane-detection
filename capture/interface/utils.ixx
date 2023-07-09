@@ -1,5 +1,7 @@
 module;
 
+#include <cstdint>
+#include <utility>
 #include <vector>
 
 #include <atlbase.h>
@@ -7,10 +9,16 @@ module;
 
 export module capture.utils;
 
-export namespace capture {
+export namespace capture::utils {
 /**
  *
  * @return
  */
 std::vector<CComPtr<IDXGIAdapter1>> EnumerateDXGIAdapters();
-}  // namespace capture
+
+/**
+ *
+ * @return
+ */
+std::pair<std::int32_t, std::int32_t> QueryPrimaryMonitorResolution();
+}  // namespace capture::utils
