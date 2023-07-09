@@ -3,10 +3,10 @@
 ## Requirements
 
 - Windows
-- [MSVC](https://visualstudio.microsoft.com/downloads/)
+- [MSVC 17.6.4+ with C++ modules support](https://visualstudio.microsoft.com/downloads/)
 - [vcpkg](https://vcpkg.io/en/)
-- [CUDA](https://developer.nvidia.com/cuda-downloads)
-- [TensorRT](https://developer.nvidia.com/tensorrt)
+- [CUDA 11.8](https://developer.nvidia.com/cuda-downloads)
+- [TensorRT 8.5](https://developer.nvidia.com/tensorrt)
 
 Dependencies are managed by *vcpkg* and are specified in `vcpkg.json`.
 
@@ -32,6 +32,29 @@ details.
 The provided `CMakePresets.json` contains presets for building (x64) in `debug`
 and `release` modes.
 The presets have been tested with *JetBrains CLion*.
+
+The environment variable `VCPKG_ROOT` should be set to the root of
+the *vcpkg* installation, e.g. `C:\vcpkg`. This is to ensure that the *vcpkg* toolchain file is found. Otherwise, one
+must specify `-DCMAKE_TOOLCHAIN_FILE=<vcpkg_root>\scripts\buildsystems\vcpkg.cmake` manually.
+
+Building from command line follows the usual CMake workflow:
+
+```powershell
+# Either open Developer Command Prompt for VS 2022 or run the vcvarsall.bat script to set up the environment
+"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+# Generate the build files
+cmake --preset x64-release -S <repository_root> -B <repository_root>\cmake-build-x64-release
+```
+
+```powershell
+# Build the project
+cmake --build <repository_root>\cmake-build-x64-release --config Release
+```
+
+```cmd
+# Run the executable
+<repository_root>\cmake-build-x64-release\ETS2_Lane_Detection.exe
+```
 
 ### OnnxRuntime Providers
 
