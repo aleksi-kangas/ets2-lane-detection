@@ -4,7 +4,6 @@ module;
 #include <cassert>
 #include <chrono>
 #include <filesystem>
-#include <iostream>
 #include <span>
 #include <stdexcept>
 
@@ -108,9 +107,8 @@ ufld::PostProcessResult ufld::v1::LaneDetector::PostProcess(
       ufld::math::SoftMax<0>(output_tensor_grid);  // e.g. [200, 18, 4]
   auto indices = xt::arange<float>(
                      1.0f, static_cast<float>(config_->row_anchor_cell_count))
-                     .reshape({-1, 1, 1});  // e.g. [200, 1, 1]
-  const xt::xtensor<float, 2> locations =
-      xt::sum(probabilities * indices, 0);  // e.g. [18, 4]
+                     .reshape({-1, 1, 1});               // e.g. [200, 1, 1]
+  auto locations = xt::sum(probabilities * indices, 0);  // e.g. [18, 4]
 
   std::vector<Lane> lanes(kLaneCount);
   for (uint32_t lane_index = 0; lane_index < kLaneCount; ++lane_index) {
