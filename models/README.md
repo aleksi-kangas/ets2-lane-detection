@@ -15,6 +15,26 @@ must be deleted manually for it to be regenerated.
 
 ## [Ultra-Fast-Lane-Detection V1](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/140_Ultra-Fast-Lane-Detection)
 
+```BibTeX
+@InProceedings{qin2020ultra,
+author = {Qin, Zequn and Wang, Huanyu and Li, Xi},
+title = {Ultra Fast Structure-aware Deep Lane Detection},
+booktitle = {The European Conference on Computer Vision (ECCV)},
+year = {2020}
+}
+
+@ARTICLE{qin2022ultrav2,
+  author={Qin, Zequn and Zhang, Pengyi and Li, Xi},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
+  title={Ultra Fast Deep Lane Detection With Hybrid Anchor Driven Ordinal Classification}, 
+  year={2022},
+  volume={},
+  number={},
+  pages={1-14},
+  doi={10.1109/TPAMI.2022.3182097}
+}
+```
+
 ### CULane
 
 - `ufld_v1_culane_288x800.onnx`
