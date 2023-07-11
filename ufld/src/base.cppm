@@ -31,11 +31,14 @@ ufld::LaneDetectionResult ufld::ILaneDetector::Detect(
     ufld::utils::DrawInputArea(pre_process_result.crop_area, preview.value());
   }
 
+  ufld::LaneDetectionStatistics statistics{
+      .pre_process_duration = pre_process_result.duration,
+      .inference_duration = inference_result.duration,
+      .post_process_duration = post_process_result.duration};
+
   return {.lanes = std::move(post_process_result.lanes),
           .preview = std::move(preview.value()),
-          .pre_process_duration = pre_process_result.duration,
-          .inference_duration = inference_result.duration,
-          .post_process_duration = post_process_result.duration};
+          .statistics = std::move(statistics)};
 }
 
 std::filesystem::path ufld::ILaneDetector::ModelDirectory() const {

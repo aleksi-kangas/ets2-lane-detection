@@ -36,6 +36,9 @@ class UI {
   void UpdatePreview(const cv::Mat& preview);
   void RenderPreview(bool lane_detection_initializing);
 
+  void UpdateStatistics(const ufld::LaneDetectionStatistics& statistics);
+  void RenderStatistics();
+
   void EndFrame();
 
   void SetOnLaneDetectionEnableChanged(
@@ -46,6 +49,7 @@ class UI {
  private:
   capture::Settings capture_settings_{};
   ufld::Settings ufld_settings_{};
+  ufld::LaneDetectionStatistics statistics_{};
 
   WNDCLASSEXW wc_{};
   HWND hwnd_{nullptr};

@@ -3,6 +3,7 @@ module;
 #include <array>
 #include <cassert>
 #include <filesystem>
+#include <format>
 #include <stdexcept>
 #include <utility>
 
@@ -125,6 +126,28 @@ void ets2ld::UI::RenderPreview(bool lane_detection_initializing) {
                    ImGui::GetContentRegionAvail(), ImVec2{0, 0}, ImVec2{1, 1});
     }
   }
+  ImGui::End();
+}
+
+void ets2ld::UI::UpdateStatistics(
+    const ufld::LaneDetectionStatistics& statistics) {
+  statistics_ = statistics;
+}
+
+void ets2ld::UI::RenderStatistics() {
+  ImGui::Begin("Statistics");
+  ImGui::Text(
+      std::format("Pre-process duration: {:.1f} ms",
+                  static_cast<float>(statistics_.pre_process_duration.count()))
+          .c_str());
+  ImGui::Text(
+      std::format("Inference duration: {:.1f} ms",
+                  static_cast<float>(statistics_.inference_duration.count()))
+          .c_str());
+  ImGui::Text(
+      std::format("Post-process duration: {:.1f} ms",
+                  static_cast<float>(statistics_.post_process_duration.count()))
+          .c_str());
   ImGui::End();
 }
 

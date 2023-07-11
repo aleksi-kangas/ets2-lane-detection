@@ -38,12 +38,16 @@ struct PostProcessResult {
   std::chrono::milliseconds duration{0};
 };
 
-struct LaneDetectionResult {
-  std::vector<Lane> lanes{};
-  std::optional<cv::Mat> preview{std::nullopt};
+struct LaneDetectionStatistics {
   std::chrono::milliseconds pre_process_duration{0};
   std::chrono::milliseconds inference_duration{0};
   std::chrono::milliseconds post_process_duration{0};
+};
+
+struct LaneDetectionResult {
+  std::vector<Lane> lanes{};
+  std::optional<cv::Mat> preview{std::nullopt};
+  LaneDetectionStatistics statistics{};
 };
 
 class ILaneDetector {

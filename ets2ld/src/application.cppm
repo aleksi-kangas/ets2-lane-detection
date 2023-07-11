@@ -1,7 +1,6 @@
 module;
 
 #include <atomic>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -29,11 +28,6 @@ void ets2ld::Application::Run() {
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   while (true) {
-    if (!ui_.BeginFrame())
-      break;
-
-    ui_.RenderSettings(lane_detection_initializing_, lane_detection_active_);
-
     if (lane_detection_result_available_) {
       ufld::LaneDetectionResult result{};
       {
@@ -41,19 +35,17 @@ void ets2ld::Application::Run() {
         result = std::move(lane_detection_result_);
         lane_detection_result_available_ = false;
       }
+      ui_.UpdateStatistics(result.statistics);
       if (result.preview.has_value()) {
         ui_.UpdatePreview(result.preview.value());
       }
-
-      // TODO Show times in UI
-      std::cout << "Pre-processing time: "
-                << result.pre_process_duration.count() << " ms\n";
-      std::cout << "Inference time: " << result.inference_duration.count()
-                << " ms\n";
-      std::cout << "Post-processing time: "
-                << result.post_process_duration.count() << " ms\n";
     }
 
+    if (!ui_.BeginFrame())
+      break;
+
+    ui_.RenderSettings(lane_detection_initializing_, lane_detection_active_);
+    ui_.RenderStatistics();
     if (lane_detection_initializing_ || lane_detection_active_) {
       ui_.RenderPreview(lane_detection_initializing_);
     }
