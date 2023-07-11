@@ -54,6 +54,7 @@ ufld::ILaneDetector::ILaneDetector(const std::filesystem::path& model_path,
                                    Version version,
                                    std::variant<ufld::v1::Variant> variant)
     : model_directory_{model_path.parent_path()},
+      cache_directory_string_{(model_directory_ / "cache").string()},
       version_{version},
       variant_{variant} {
   InitializeSession(model_path);
@@ -114,16 +115,15 @@ cv::Mat ufld::ILaneDetector::ColorPreProcess(const cv::Mat& image) {
 
 void ufld::ILaneDetector::InitializeSession(
     const std::filesystem::path& model_path) {
-  if (!std::filesystem::exists(model_path)) {
+  if (!std::filesystem::exists(model_path))
     throw std::invalid_argument{"Model file does not exist: " +
                                 model_path.string()};
-  }
 
   Ort::SessionOptions session_options{};
   session_options.SetIntraOpNumThreads(1);
 
   try {  // TensorRT
-    Ort::OrtTensorRTProviderOptions tensorrt_options{};
+    OrtTensorRTProviderOptions tensorrt_options{};
     tensorrt_options.device_id = 0;
     // "TensorRT option trt_max_partition_iterations must be a positive integer value. Set it to 1000"
     tensorrt_options.trt_max_partition_iterations = 1000;
@@ -133,13 +133,16 @@ void ufld::ILaneDetector::InitializeSession(
     tensorrt_options.trt_max_workspace_size = 1073741824;
     // Enable DLA
     tensorrt_options.trt_dla_enable = 1;
+    // Enable engine caching (note that cache must be cleared when ORT version, TensorRT or hardware changes)
+    tensorrt_options.trt_engine_cache_enable = 1;
+    tensorrt_options.trt_engine_cache_path = cache_directory_string_.c_str();
     session_options.AppendExecutionProvider_TensorRT(tensorrt_options);
   } catch (const Ort::Exception& e) {
     std::cerr << "TensorRT is not available: " << e.what() << std::endl;
   }
 
   try {  // CUDA
-    Ort::OrtCUDAProviderOptions cuda_options{};
+    OrtCUDAProviderOptions cuda_options{};
     cuda_options.device_id = 0;
     session_options.AppendExecutionProvider_CUDA(cuda_options);
   } catch (const Ort::Exception& e) {

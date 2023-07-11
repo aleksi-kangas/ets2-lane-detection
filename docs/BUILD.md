@@ -3,6 +3,7 @@
 ## Requirements
 
 - Windows
+- [CMake 3.25](https://cmake.org/download/)
 - [MSVC 17.6.4+ with C++ modules support](https://visualstudio.microsoft.com/downloads/)
 - [vcpkg](https://vcpkg.io/en/)
 - [CUDA 11.8](https://developer.nvidia.com/cuda-downloads)
@@ -10,7 +11,20 @@
 
 Dependencies are managed by *vcpkg* and are specified in `vcpkg.json`.
 
-### CMake Configuration
+### Models
+
+One needs to download at least one lane detection model.
+Please refer to the [README](../models/README.md) in `models` directory for
+details.
+
+#### Cache
+
+Caching is enabled for models, which speeds up startup after the first run. The model graph optimization during the
+first run may take multiple minutes, but subsequent runs should take roughly tens of seconds. The cache is located in
+`models/cache`. Note that, whenever *OnnxRuntime* or *TensorRT* version is bumped, or the hardware changes, the cache
+must be deleted manually for it to be regenerated.
+
+## CMake Configuration
 
 Unfortunately, at the time of writing, the `onnxruntime-gpu` library from
 *vcpkg* does not support CMake's `find_package` command yet (see
@@ -20,12 +34,6 @@ achieve such functionality. The files are automatically copied
 to `<cmake-build>/vcpkg_installed/x64-windows/share/onnxruntime-gpu/`
 at configuration time. Shall there be any issues, the files are found in this
 directory.
-
-### Models
-
-One needs to download at least one lane detection model.
-Please refer to the [README](../models/README.md) in `models` directory for
-details.
 
 ## Building
 

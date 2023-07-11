@@ -94,6 +94,7 @@ class ILaneDetector {
                          Version version, std::variant<v1::Variant> variant);
 
   std::filesystem::path model_directory_{};
+  std::string cache_directory_string_{};  // String for lifetime
   Version version_{};
   std::variant<v1::Variant> variant_{};
 
