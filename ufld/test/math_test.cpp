@@ -1,17 +1,13 @@
-module;
-
 #include <gtest/gtest.h>
 #include <xtensor/xadapt.hpp>
 #include <xtensor/xarray.hpp>
 #include <xtensor/xtensor.hpp>
 
-export module ufld.test.math;
-
 import ufld.math;
 
 TEST(UfldMath, SoftMax) {
   {  // 2D (1D)
-    const xt::xarray<float> a{{1, 2, 3, 6}};
+    const xt::xarray<float> a{{1.0f, 2.0f, 3.0f, 6.0f}};
     const xt::xtensor<float, 2> tensor = xt::adapt(a, {1, 4});
     const xt::xtensor<float, 2> result = ufld::math::SoftMax<1>(tensor);
     const xt::xarray<float> expected{
@@ -23,7 +19,9 @@ TEST(UfldMath, SoftMax) {
     }
   }
   {  // 2D
-    const xt::xarray<float> a{{1, 2, 3, 6}, {2, 4, 5, 6}, {1, 2, 3, 6}};
+    const xt::xarray<float> a{{1.0f, 2.0f, 3.0f, 6.0f},
+                              {2.0f, 4.0f, 5.0f, 6.0f},
+                              {1.0f, 2.0f, 3.0f, 6.0f}};
     const xt::xtensor<float, 2> tensor = xt::adapt(a, {3, 4});
     const xt::xtensor<float, 2> result = ufld::math::SoftMax<1>(tensor);
     const xt::xarray<float> expected{
