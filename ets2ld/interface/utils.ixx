@@ -12,8 +12,6 @@ module;
 
 export module ets2ld.utils;
 
-import ufld;
-
 export namespace ets2ld::utils {
 /**
  *
