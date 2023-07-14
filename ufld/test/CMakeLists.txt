@@ -11,7 +11,7 @@ set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "2182bf5c-ef0d-489a-91da-49dbc3090d2
 set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 
 include(FetchContent)
-set(FETCHCONTENT_QUIET OFF)
+set(FETCHCONTENT_QUIET)
 FetchContent_Declare(googletest
         GIT_REPOSITORY https://github.com/google/googletest
         GIT_TAG main)
@@ -20,7 +20,7 @@ include(GoogleTest)
 
 add_executable(${PROJECT_NAME} math_test.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC ufld gtest gtest_main)
-target_compile_options(${PROJECT_NAME} PRIVATE /Wall)
+target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 gtest_discover_tests(${PROJECT_NAME})

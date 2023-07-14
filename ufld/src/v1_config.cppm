@@ -4,9 +4,9 @@ module;
 #include <utility>
 #include <vector>
 
-export module ufld.v1.config;
+module ufld:v1_config;
 
-export namespace ufld::v1 {
+namespace ufld::v1 {
 struct IConfig {
  public:
   // Number of cells in a single row anchor, i.e. the number of columns in the grid

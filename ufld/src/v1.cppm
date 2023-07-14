@@ -1,11 +1,13 @@
 module;
 
 #include <array>
-#include <cassert>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <span>
 #include <stdexcept>
+#include <vector>
 
 #include <onnxruntime_cxx_api.h>
 #include <opencv2/opencv.hpp>
@@ -14,11 +16,62 @@ module;
 #include <xtensor/xtensor.hpp>
 #include <xtensor/xview.hpp>
 
-module ufld.v1;
+module ufld:v1;
 
-import ufld.base;
+import ufld.ld;
 import ufld.math;
-import ufld.v1.config;
+
+import :base;
+import :v1_config;
+
+namespace ufld::v1 {
+/**
+ *
+ */
+class LaneDetector final : public LaneDetectorBase {
+ public:
+  /**
+   *
+   * @param model_directory
+   * @param variant
+   */
+  LaneDetector(const std::filesystem::path& model_directory,
+               ufld::v1::Variant variant);
+
+  LaneDetector(const LaneDetector&) = delete;
+  LaneDetector& operator=(const LaneDetector&) = delete;
+
+  LaneDetector(LaneDetector&&) = delete;
+  LaneDetector& operator=(LaneDetector&&) = delete;
+
+ private:
+  static constexpr int32_t kInputWidth = 800;
+  static constexpr int32_t kInputHeight = 288;
+  static constexpr float kInputAspectRatio =
+      static_cast<float>(kInputWidth) / static_cast<float>(kInputHeight);
+  static constexpr uint32_t kLaneCount = 4;
+
+  std::unique_ptr<const IConfig> config_{nullptr};
+
+  /**
+   *
+   * @param image
+   * @return
+   */
+  [[nodiscard]] ufld::PreProcessResult PreProcess(
+      const cv::Mat& image) const override;
+
+  /**
+   *
+   * @param outputs
+   * @param pre_process_result
+   * @return
+   */
+  [[nodiscard]] ufld::PostProcessResult PostProcess(
+      const std::vector<Ort::Value>& outputs,
+      const PreProcessResult& pre_process_result) const override;
+};
+}  // namespace ufld::v1
 
 /**
  *
@@ -31,8 +84,8 @@ import ufld.v1.config;
 
 ufld::v1::LaneDetector::LaneDetector(
     const std::filesystem::path& model_directory, Variant variant)
-    : ILaneDetector{ConstructModelPath(model_directory, variant), Version::kV1,
-                    variant} {
+    : LaneDetectorBase{ConstructModelPath(model_directory, variant),
+                       Version::kV1, variant} {
   config_ = [=]() -> std::unique_ptr<ufld::v1::IConfig> {
     switch (variant) {
       case Variant::kCULane:

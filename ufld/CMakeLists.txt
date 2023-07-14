@@ -17,21 +17,18 @@ find_package(OnnxRuntime REQUIRED)
 find_package(xtensor REQUIRED)
 
 add_library(${PROJECT_NAME})
-target_sources(${PROJECT_NAME} PUBLIC
-        FILE_SET cxx_modules TYPE CXX_MODULES
+target_sources(${PROJECT_NAME}
+        PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES
         FILES
-        interface/base.ixx
-        interface/math.ixx
+        interface/ld.ixx
         interface/ufld.ixx
-        interface/utils.ixx
-        interface/v1.ixx
-        interface/v1_config.ixx)
-target_sources(${PROJECT_NAME} PRIVATE
+
         src/base.cppm
         src/math.cppm
-        src/ufld.cppm
         src/utils.cppm
-        src/v1.cppm)
+        src/v1.cppm
+        src/v1_config.cppm)
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${OnnxRuntime_INCLUDE_DIRS} ${xtensor_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${OnnxRuntime_LIBRARIES} ${xtensor_LIBRARIES} xtensor::optimize xtensor::use_xsimd)
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)
