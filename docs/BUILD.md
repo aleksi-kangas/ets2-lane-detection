@@ -3,8 +3,8 @@
 ## Requirements
 
 - Windows
-- [CMake 3.25](https://cmake.org/download/)
-- [MSVC 17.6.4+ with C++ modules support](https://visualstudio.microsoft.com/downloads/)
+- [CMake 3.26](https://cmake.org/download/)
+- [MSVC 17.6.5+ with C++ modules support](https://visualstudio.microsoft.com/downloads/)
 - [vcpkg](https://vcpkg.io/en/)
 - [CUDA 11.8](https://developer.nvidia.com/cuda-downloads)
 - [TensorRT 8.5](https://developer.nvidia.com/tensorrt)
