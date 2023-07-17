@@ -10,19 +10,21 @@ module ufld:utils;
 
 namespace ufld::utils {
 /**
- *
- * @param lanes
- * @param image
+ * Draw the input lanes on the image.
+ * @param lanes input lanes
+ * @param image image to draw on
  */
 void DrawLanes(const std::vector<std::vector<cv::Point2f>>& lanes,
                cv::Mat& image);
 /**
- *
- * @param inputArea
- * @param image
+ * Draw the input area on the image.
+ * @param inputArea input area
+ * @param image     image to draw on
  */
 void DrawInputArea(cv::Rect inputArea, cv::Mat& image);
 }  // namespace ufld::utils
+
+// -------- Implementation --------
 
 void DrawLanePoints(const std::vector<std::vector<cv::Point2f>>& lanes,
                     cv::Mat& image,

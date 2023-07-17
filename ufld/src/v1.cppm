@@ -18,22 +18,22 @@ module;
 
 module ufld:v1;
 
-import ufld.ld;
 import ufld.math;
 
+import ufld;
 import :base;
 import :v1_config;
 
 namespace ufld::v1 {
 /**
- *
+ * UFLD V1
  */
 class LaneDetector final : public LaneDetectorBase {
  public:
   /**
-   *
-   * @param model_directory
-   * @param variant
+   * Constructor
+   * @param model_directory model directory
+   * @param variant         UFLD V1 variant
    */
   LaneDetector(const std::filesystem::path& model_directory,
                ufld::v1::Variant variant);
@@ -54,24 +54,27 @@ class LaneDetector final : public LaneDetectorBase {
   std::unique_ptr<const IConfig> config_{nullptr};
 
   /**
-   *
-   * @param image
-   * @return
+   * Pre-process the input image.
+   * Pre-processing includes cropping, resizing and color conversion.
+   * @param image   input image
+   * @return        pre-process result
    */
   [[nodiscard]] ufld::PreProcessResult PreProcess(
       const cv::Mat& image) const override;
 
   /**
-   *
-   * @param outputs
-   * @param pre_process_result
-   * @return
+   * Post-process the output of the model.
+   * @param outputs             model outputs
+   * @param pre_process_result  pre-process result
+   * @return                    post-process result
    */
   [[nodiscard]] ufld::PostProcessResult PostProcess(
       const std::vector<Ort::Value>& outputs,
       const PreProcessResult& pre_process_result) const override;
 };
 }  // namespace ufld::v1
+
+// -------- Implementation --------
 
 /**
  *

@@ -16,12 +16,14 @@ module;
 
 module ufld:base;
 
-import ufld.ld;
-
+import ufld;
 import :utils;
 
 namespace ufld {
 
+/**
+ * Result of pre-processing.
+ */
 struct PreProcessResult {
   cv::Mat processed_image{};
   cv::Size original_size{};
@@ -29,16 +31,25 @@ struct PreProcessResult {
   std::chrono::milliseconds duration{0};
 };
 
+/**
+ * Result of inference.
+ */
 struct InferenceResult {
   std::vector<Ort::Value> outputs{};
   std::chrono::milliseconds duration{0};
 };
 
+/**
+ * Result of post-processing.
+ */
 struct PostProcessResult {
   std::vector<Lane> lanes{};
   std::chrono::milliseconds duration{0};
 };
 
+/**
+ * Base class for lane detectors using ONNX models.
+ */
 class LaneDetectorBase : public ILaneDetector {
  public:
   virtual ~LaneDetectorBase() = default;
@@ -50,30 +61,30 @@ class LaneDetectorBase : public ILaneDetector {
   LaneDetectorBase& operator=(LaneDetectorBase&&) = delete;
 
   /**
-   *
-   * @param image
-   * @param preview
-   * @return
+   * Detect lanes in an image.
+   * @param image   image
+   * @param preview optional preview image (visualization)
+   * @return        lane detection result
    */
   [[nodiscard]] LaneDetectionResult Detect(
       const cv::Mat& image,
       std::optional<cv::Mat> preview = std::nullopt) override;
 
   /**
-   *
-   * @return
+   * Get the model directory.
+   * @return    model directory
    */
   [[nodiscard]] std::filesystem::path ModelDirectory() const override;
 
   /**
-   *
-   * @return
+   * Get the model version.
+   * @return    model version
    */
   [[nodiscard]] Version ModelVersion() const override;
 
   /**
-   *
-   * @return
+   * Get the model variant.
+   * @return    model variant
    */
   [[nodiscard]] std::variant<v1::Variant> ModelVariant() const override;
 
@@ -110,73 +121,73 @@ class LaneDetectorBase : public ILaneDetector {
   std::vector<std::vector<float>> output_tensor_data_{};
 
   /**
-   *
-   * @param image
-   * @return
+   * Pre-process an image.
+   * @param image   image
+   * @return        pre-process result
    */
   [[nodiscard]] virtual PreProcessResult PreProcess(
       const cv::Mat& image) const = 0;
 
   /**
-   *
-   * @param outputs
-   * @param pre_process_result
-   * @return
+   * Post-process the outputs of the model.
+   * @param outputs             outputs of the model
+   * @param pre_process_result  pre-process result
+   * @return                    post-process result
    */
   [[nodiscard]] virtual PostProcessResult PostProcess(
       const std::vector<Ort::Value>& outputs,
       const PreProcessResult& pre_process_result) const = 0;
 
   /**
-   *
-   * @param image
-   * @param input_aspect_ratio
-   * @return
+   * Get the model path.
+   * @param image               image
+   * @param input_aspect_ratio  input aspect ratio
+   * @return                    center crop area
    */
   [[nodiscard]] static cv::Rect ComputeCenterCrop(const cv::Mat& image,
                                                   float input_aspect_ratio);
 
   /**
-   *
-   * @param image
-   * @return
+   * Pre-process colors of an image.
+   * @param image   image
+   * @return        color-pre-processed image
    */
   [[nodiscard]] static cv::Mat ColorPreProcess(const cv::Mat& image);
 
  private:
   /**
-   *
-   * @param model_path
+   * Initialize the ONNX session.
+   * @param model_path  model path
    */
   void InitializeSession(const std::filesystem::path& model_path);
 
   /**
-   *
+   * Initialize the input(s) of the ONNX session.
    */
   void InitializeInput();
 
   /**
-   *
+   * Initialize the output(s) of the ONNX session.
    */
   void InitializeOutputs();
 
   /**
-   *
-   * @param image
-   * @return
+   * Initialize an input tensor using the given image.
+   * @param image   image
+   * @return        input tensor
    */
   [[nodiscard]] Ort::Value InitializeInputTensor(const cv::Mat& image);
 
   /**
-   *
-   * @return
+   * Initialize output tensors.
+   * @return    output tensors
    */
   [[nodiscard]] std::vector<Ort::Value> InitializeOutputTensors();
 
   /**
-   *
-   * @param image
-   * @return
+   * Inference using the ONNX session.
+   * @param image   image
+   * @return        inference result
    */
   [[nodiscard]] InferenceResult Inference(const cv::Mat& image);
 };
