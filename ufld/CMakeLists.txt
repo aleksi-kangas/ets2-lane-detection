@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.26...3.26 FATAL_ERROR)
 project(ufld CXX)
 
-option(BUILD_UFLD_TESTS "Build UFLD tests" ${BUILD_TESTS})
-
 if (NOT MSVC)
     message(FATAL_ERROR "Only MSVC is supported")
 endif ()
@@ -34,6 +32,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${OnnxRuntime_L
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
-if (${BUILD_UFLD_TESTS})
-    add_subdirectory(test)
-endif ()
+add_subdirectory(test)
