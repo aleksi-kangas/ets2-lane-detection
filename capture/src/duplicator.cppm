@@ -6,10 +6,31 @@ module;
 #include <d3d11.h>
 #include <dxgi1_2.h>
 
-module capture.duplicator;
+module capture:duplicator;
 
-import capture.device;
-import capture.output;
+import :device;
+import :output;
+
+namespace capture {
+class Duplicator {
+ public:
+  Duplicator(Device& device, Output& output);
+
+  bool UpdateFrame();
+
+  void ReleaseFrame();
+
+  [[nodiscard]] ID3D11Texture2D* D3D11Texture2D() const {
+    return d3d11_texture2d_;
+  }
+
+ private:
+  CComPtr<IDXGIOutputDuplication> dxgi_output_duplication_{nullptr};
+  CComQIPtr<ID3D11Texture2D> d3d11_texture2d_{nullptr};
+};
+}  // namespace capture
+
+// -------- Implementation --------
 
 capture::Duplicator::Duplicator(capture::Device& device, capture::Output& output) {
   output.DXGIOutput1()->DuplicateOutput(device.D3D11Device(),

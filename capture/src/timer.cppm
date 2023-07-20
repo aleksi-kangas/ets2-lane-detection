@@ -6,7 +6,25 @@ module;
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-module capture.timer;
+module capture:timer;
+
+namespace capture {
+class Timer {
+ public:
+  Timer(std::int32_t target_fps);
+  ~Timer();
+
+  void Wait();
+
+ private:
+  HANDLE timer_{nullptr};
+
+  void SetPeriodic(std::int32_t period);
+  void Cancel();
+};
+}  // namespace capture
+
+// -------- Implementation --------
 
 capture::Timer::Timer(std::int32_t target_fps) {
   constexpr auto kFlags = CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
