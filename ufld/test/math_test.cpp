@@ -3,7 +3,7 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xtensor.hpp>
 
-import ufld.math;
+import ufld;
 
 TEST(UfldMath, SoftMax) {
   {  // 2D (1D)

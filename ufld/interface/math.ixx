@@ -7,7 +7,7 @@ module;
 #include "xtensor/xmath.hpp"
 #include "xtensor/xtensor.hpp"
 
-export module ufld.math;
+export module ufld:math;
 
 export namespace ufld::math {
 /**

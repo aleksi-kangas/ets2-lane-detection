@@ -18,10 +18,10 @@ add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
         PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES
         FILES
+        interface/math.ixx
         interface/ufld.ixx
 
         src/base.cppm
-        src/math.cppm
         src/ufld.cppm
         src/utils.cppm
         src/v1.cppm

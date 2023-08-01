@@ -18,10 +18,8 @@ module;
 
 module ufld:v1;
 
-import ufld.math;
-
-import ufld;
 import :base;
+import :math;
 import :v1_config;
 
 namespace ufld::v1 {

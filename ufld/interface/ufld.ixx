@@ -12,7 +12,7 @@ module;
 
 export module ufld;
 
-export import ufld.math;
+export import :math;
 
 export namespace ufld {
 /**

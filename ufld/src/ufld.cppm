@@ -1,13 +1,13 @@
 module;
 
-#include <filesystem>
 #include <memory>
 #include <stdexcept>
 #include <variant>
 
+#include <opencv2/opencv.hpp>
+
 module ufld:impl;
 
-import ufld;
 import :v1;
 
 std::unique_ptr<ufld::ILaneDetector> ufld::MakeLaneDetector(
