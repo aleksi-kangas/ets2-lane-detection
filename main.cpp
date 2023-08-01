@@ -1,9 +1,7 @@
-#include <compare>
+#include <compare>  // TODO Investigate how to get rid of this
 
-import capture;
 import ets2ld;
 
 int main() {
-  ets2ld::Application ets2_lane_detection{};
-  ets2_lane_detection.Run();
+  ets2ld::RunApplication();
 }
