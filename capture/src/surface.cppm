@@ -42,8 +42,7 @@ class Surface {
 
 // -------- Implementation --------
 
-capture::Surface::Surface(capture::Device& device, capture::Output& output)
-    : device_{device}, output_{output} {
+capture::Surface::Surface(capture::Device& device, capture::Output& output) : device_{device}, output_{output} {
   Rebuild();
 }
 
@@ -79,7 +78,6 @@ void capture::Surface::Rebuild() {
     d3d11_texture2d_desc_.BindFlags = 0;
     d3d11_texture2d_desc_.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
     d3d11_texture2d_desc_.MiscFlags = 0;
-    device_.D3D11Device()->CreateTexture2D(&d3d11_texture2d_desc_, nullptr,
-                                           &d3d11_texture2d_);
+    device_.D3D11Device()->CreateTexture2D(&d3d11_texture2d_desc_, nullptr, &d3d11_texture2d_);
   }
 }

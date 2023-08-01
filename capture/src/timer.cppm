@@ -51,9 +51,7 @@ void capture::Timer::Wait() {
 void capture::Timer::SetPeriodic(std::int32_t period) {
   constexpr auto kDueTime = 0LL;
   constexpr auto kFlags = 0;
-  if (!SetWaitableTimer(timer_,
-                        reinterpret_cast<const LARGE_INTEGER*>(&kDueTime),
-                        period, nullptr, nullptr, kFlags)) {
+  if (!SetWaitableTimer(timer_, reinterpret_cast<const LARGE_INTEGER*>(&kDueTime), period, nullptr, nullptr, kFlags)) {
     throw std::runtime_error{"Failed to set timer"};
   }
 }

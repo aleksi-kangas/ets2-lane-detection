@@ -29,23 +29,19 @@ std::pair<std::int32_t, std::int32_t> QueryPrimaryMonitorResolution();
 std::vector<CComPtr<IDXGIAdapter1>> capture::utils::EnumerateDXGIAdapters() {
 
   CComPtr<IDXGIFactory1> dxgi_factory1{nullptr};
-  HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1),
-                                  reinterpret_cast<void**>(&dxgi_factory1));
+  HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgi_factory1));
   if (FAILED(hr)) {
     throw std::runtime_error{"Failed to create DXGI factory"};
   }
   std::vector<CComPtr<IDXGIAdapter1>> dxgi_adapters{};
   CComPtr<IDXGIAdapter1> dxgi_adapter1{nullptr};
-  for (UINT i = 0;
-       dxgi_factory1->EnumAdapters1(i, &dxgi_adapter1) != DXGI_ERROR_NOT_FOUND;
-       ++i) {
+  for (UINT i = 0; dxgi_factory1->EnumAdapters1(i, &dxgi_adapter1) != DXGI_ERROR_NOT_FOUND; ++i) {
     dxgi_adapters.push_back(dxgi_adapter1);
     dxgi_adapter1.Release();
   }
   return dxgi_adapters;
 }
 
-std::pair<std::int32_t, std::int32_t>
-capture::utils::QueryPrimaryMonitorResolution() {
+std::pair<std::int32_t, std::int32_t> capture::utils::QueryPrimaryMonitorResolution() {
   return {GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
 }

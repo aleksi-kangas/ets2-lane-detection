@@ -19,10 +19,7 @@ module;
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
-                                                             UINT msg,
-                                                             WPARAM wParam,
-                                                             LPARAM lParam);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 module ets2ld:ui;
 
@@ -44,8 +41,7 @@ class UI {
 
   [[nodiscard]] bool BeginFrame();
 
-  void RenderSettings(bool lane_detection_initializing,
-                      bool lane_detection_active);
+  void RenderSettings(bool lane_detection_initializing, bool lane_detection_active);
 
   void UpdatePreview(const cv::Mat& preview);
   void RenderPreview(bool lane_detection_initializing);
@@ -55,8 +51,7 @@ class UI {
 
   void EndFrame();
 
-  void SetOnLaneDetectionEnableChanged(
-      std::function<void(bool, capture::Settings, ufld::Settings)> callback);
+  void SetOnLaneDetectionEnableChanged(std::function<void(bool, capture::Settings, ufld::Settings)> callback);
 
   void ShowErrorMessage(const std::string& message);
 
@@ -76,22 +71,18 @@ class UI {
   CComPtr<ID3D11ShaderResourceView> preview_srv_{nullptr};
 
   // Callbacks
-  std::function<void(bool, capture::Settings, ufld::Settings)>
-      on_lane_detection_enable_changed_{};
+  std::function<void(bool, capture::Settings, ufld::Settings)> on_lane_detection_enable_changed_{};
 
   void CreateUIWindow();
 
-  static LRESULT CALLBACK WndProcWrapper(HWND hwnd, UINT message, WPARAM wparam,
-                                         LPARAM lparam);
+  static LRESULT CALLBACK WndProcWrapper(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
   LRESULT WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
   [[nodiscard]] bool PollEvents();
 
   void RenderSettingsGeneral(bool lane_detection_initializing);
-  void RenderSettingsModel(bool lane_detection_initializing,
-                           bool lane_detection_active);
-  void RenderSettingsCapture(bool lane_detection_initializing,
-                             bool lane_detection_active);
+  void RenderSettingsModel(bool lane_detection_initializing, bool lane_detection_active);
+  void RenderSettingsCapture(bool lane_detection_initializing, bool lane_detection_active);
 };
 }  // namespace ets2ld
 
@@ -100,8 +91,7 @@ class UI {
 ets2ld::UI::UI() {
   CreateUIWindow();
 
-  auto [device, swap_chain, device_context] =
-      utils::CreateDeviceAndSwapChain(hwnd_);
+  auto [device, swap_chain, device_context] = utils::CreateDeviceAndSwapChain(hwnd_);
   device_ = device;
   swap_chain_ = swap_chain;
   device_context_ = device_context;
@@ -137,8 +127,7 @@ bool ets2ld::UI::BeginFrame() {
   return true;
 }
 
-void ets2ld::UI::RenderSettings(bool lane_detection_initializing,
-                                bool lane_detection_active) {
+void ets2ld::UI::RenderSettings(bool lane_detection_initializing, bool lane_detection_active) {
   ImGui::Begin("Settings");
   {
     RenderSettingsGeneral(lane_detection_initializing);
@@ -176,8 +165,7 @@ void ets2ld::UI::UpdatePreview(const cv::Mat& preview) {
   shader_resource_view_desc.Texture2D.MostDetailedMip = 0;
 
   CComPtr<ID3D11ShaderResourceView> shader_resource_view;
-  device_->CreateShaderResourceView(texture, &shader_resource_view_desc,
-                                    &shader_resource_view);
+  device_->CreateShaderResourceView(texture, &shader_resource_view_desc, &shader_resource_view);
 
   preview_texture_ = texture;
   preview_srv_ = shader_resource_view;
@@ -187,36 +175,29 @@ void ets2ld::UI::RenderPreview(bool lane_detection_initializing) {
   ImGui::Begin("Preview");
   {
     if (lane_detection_initializing) {
-      ImGui::Spinner("InitializingSpinner", 10, 2,
-                     ImGui::GetColorU32(ImGuiCol_Text));
+      ImGui::Spinner("InitializingSpinner", 10, 2, ImGui::GetColorU32(ImGuiCol_Text));
       ImGui::SameLine();
       ImGui::Text("Initializing OnnxRuntime and loading model...");
     } else {
-      ImGui::Image(reinterpret_cast<void*>(preview_srv_.p),
-                   ImGui::GetContentRegionAvail(), ImVec2{0, 0}, ImVec2{1, 1});
+      ImGui::Image(reinterpret_cast<void*>(preview_srv_.p), ImGui::GetContentRegionAvail(), ImVec2{0, 0}, ImVec2{1, 1});
     }
   }
   ImGui::End();
 }
 
-void ets2ld::UI::UpdateStatistics(
-    const ufld::LaneDetectionStatistics& statistics) {
+void ets2ld::UI::UpdateStatistics(const ufld::LaneDetectionStatistics& statistics) {
   statistics_ = statistics;
 }
 
 void ets2ld::UI::RenderStatistics() {
   ImGui::Begin("Statistics");
   ImGui::Text(
-      std::format("Pre-process duration: {:.1f} ms",
-                  static_cast<float>(statistics_.pre_process_duration.count()))
+      std::format("Pre-process duration: {:.1f} ms", static_cast<float>(statistics_.pre_process_duration.count()))
           .c_str());
   ImGui::Text(
-      std::format("Inference duration: {:.1f} ms",
-                  static_cast<float>(statistics_.inference_duration.count()))
-          .c_str());
+      std::format("Inference duration: {:.1f} ms", static_cast<float>(statistics_.inference_duration.count())).c_str());
   ImGui::Text(
-      std::format("Post-process duration: {:.1f} ms",
-                  static_cast<float>(statistics_.post_process_duration.count()))
+      std::format("Post-process duration: {:.1f} ms", static_cast<float>(statistics_.post_process_duration.count()))
           .c_str());
   ImGui::End();
 }
@@ -225,8 +206,7 @@ void ets2ld::UI::EndFrame() {
   ImGui::Render();
   device_context_->OMSetRenderTargets(1, &render_target_view_.p, nullptr);
   constexpr auto kClearColor = std::array<float, 4>{0.45f, 0.55f, 0.60f, 1.00f};
-  device_context_->ClearRenderTargetView(render_target_view_,
-                                         kClearColor.data());
+  device_context_->ClearRenderTargetView(render_target_view_, kClearColor.data());
   ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
   swap_chain_->Present(1, 0);  // VSYNC
 }
@@ -249,20 +229,17 @@ void ets2ld::UI::CreateUIWindow() {
   wc_.lpszClassName = L"ETS2 Lane Detection";
   ::RegisterClassExW(&wc_);
 
-  hwnd_ = CreateWindowExW(0, wc_.lpszClassName, wc_.lpszClassName,
-                          WS_OVERLAPPEDWINDOW, 300, 300, 1280, 720, nullptr,
+  hwnd_ = CreateWindowExW(0, wc_.lpszClassName, wc_.lpszClassName, WS_OVERLAPPEDWINDOW, 300, 300, 1280, 720, nullptr,
                           nullptr, wc_.hInstance, this);
   if (!hwnd_) {
     throw std::runtime_error{"Failed to create window"};
   }
 }
 
-LRESULT ets2ld::UI::WndProcWrapper(HWND hwnd, UINT message, WPARAM wparam,
-                                   LPARAM lparam) {
+LRESULT ets2ld::UI::WndProcWrapper(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
   if (message == WM_NCCREATE) {
     auto cs = reinterpret_cast<CREATESTRUCT*>(lparam);
-    ::SetWindowLongPtrW(hwnd, GWLP_USERDATA,
-                        reinterpret_cast<LONG_PTR>(cs->lpCreateParams));
+    ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(cs->lpCreateParams));
   }
   auto ui = reinterpret_cast<UI*>(::GetWindowLongPtrW(hwnd, GWLP_USERDATA));
   if (ui) {
@@ -271,8 +248,7 @@ LRESULT ets2ld::UI::WndProcWrapper(HWND hwnd, UINT message, WPARAM wparam,
   return ::DefWindowProcW(hwnd, message, wparam, lparam);
 }
 
-LRESULT ets2ld::UI::WndProc(HWND hwnd, UINT message, WPARAM wparam,
-                            LPARAM lparam) {
+LRESULT ets2ld::UI::WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
   if (ImGui_ImplWin32_WndProcHandler(hwnd, message, wparam, lparam))
     return true;
 
@@ -281,8 +257,7 @@ LRESULT ets2ld::UI::WndProc(HWND hwnd, UINT message, WPARAM wparam,
       if (device_ && wparam != SIZE_MINIMIZED) {
         render_target_view_.Release();
         swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-        render_target_view_ =
-            utils::CreateRenderTargetView(device_, swap_chain_);
+        render_target_view_ = utils::CreateRenderTargetView(device_, swap_chain_);
       }
       return 0;
     }
@@ -319,23 +294,19 @@ void ets2ld::UI::RenderSettingsGeneral(bool lane_detection_initializing) {
     static bool lane_detection_enabled{false};
     if (ImGui::Checkbox("Enable", &lane_detection_enabled)) {
       if (on_lane_detection_enable_changed_)
-        on_lane_detection_enable_changed_(lane_detection_enabled,
-                                          capture_settings_, ufld_settings_);
+        on_lane_detection_enable_changed_(lane_detection_enabled, capture_settings_, ufld_settings_);
     }
   }
   ImGui::EndDisabled();
 }
 
-void ets2ld::UI::RenderSettingsModel(bool lane_detection_initializing,
-                                     bool lane_detection_active) {
+void ets2ld::UI::RenderSettingsModel(bool lane_detection_initializing, bool lane_detection_active) {
   ImGui::SeparatorText("Model");
   ImGui::BeginDisabled(lane_detection_initializing || lane_detection_active);
   {
     // Models directory
-    static std::filesystem::path chosen_model_directory =
-        std::filesystem::current_path() / "models";
-    ImGui::Text("Models directory: %s",
-                chosen_model_directory.string().c_str());
+    static std::filesystem::path chosen_model_directory = std::filesystem::current_path() / "models";
+    ImGui::Text("Models directory: %s", chosen_model_directory.string().c_str());
     if (ImGui::Button("Browse...")) {
       auto path = utils::BrowseFolderDialog();
       if (path && !path->empty()) {
@@ -345,22 +316,18 @@ void ets2ld::UI::RenderSettingsModel(bool lane_detection_initializing,
 
     // Model selection
     ImGui::Text("Ultra-Fast-Lane-Detection");
-    static constexpr std::array<const char*, 1> kModelVersionComboItems = {
-        "V1"};
+    static constexpr std::array<const char*, 1> kModelVersionComboItems = {"V1"};
     static int chosen_model_version = 0;
-    ImGui::Combo("Version", &chosen_model_version,
-                 kModelVersionComboItems.data(),
+    ImGui::Combo("Version", &chosen_model_version, kModelVersionComboItems.data(),
                  static_cast<int32_t>(kModelVersionComboItems.size()));
 
-    static constexpr std::array<const char*, 2> kModelVariantComboItemsV1 = {
-        "CULane", "TuSimple"};
+    static constexpr std::array<const char*, 2> kModelVariantComboItemsV1 = {"CULane", "TuSimple"};
     static int chosen_model_variant_v1 = 0;
 
     switch (chosen_model_version) {
       case 0:
         static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
-        ImGui::Combo("Variant", &chosen_model_variant_v1,
-                     kModelVariantComboItemsV1.data(),
+        ImGui::Combo("Variant", &chosen_model_variant_v1, kModelVariantComboItemsV1.data(),
                      static_cast<int32_t>(kModelVariantComboItemsV1.size()));
         break;
       default:
@@ -374,13 +341,11 @@ void ets2ld::UI::RenderSettingsModel(bool lane_detection_initializing,
         ufld_settings_.version = ufld::Version::kV1;
         switch (chosen_model_variant_v1) {
           case 0:
-            static_assert(0 ==
-                          static_cast<int32_t>(ufld::v1::Variant::kCULane));
+            static_assert(0 == static_cast<int32_t>(ufld::v1::Variant::kCULane));
             ufld_settings_.variant = ufld::v1::Variant::kCULane;
             break;
           case 1:
-            static_assert(1 ==
-                          static_cast<int32_t>(ufld::v1::Variant::kTuSimple));
+            static_assert(1 == static_cast<int32_t>(ufld::v1::Variant::kTuSimple));
             ufld_settings_.variant = ufld::v1::Variant::kTuSimple;
             break;
           default:
@@ -394,26 +359,20 @@ void ets2ld::UI::RenderSettingsModel(bool lane_detection_initializing,
   ImGui::EndDisabled();
 }
 
-void ets2ld::UI::RenderSettingsCapture(bool lane_detection_initializing,
-                                       bool lane_detection_active) {
-  static const auto kPrimaryMonitorResolution =
-      capture::utils::QueryPrimaryMonitorResolution();
+void ets2ld::UI::RenderSettingsCapture(bool lane_detection_initializing, bool lane_detection_active) {
+  static const auto kPrimaryMonitorResolution = capture::utils::QueryPrimaryMonitorResolution();
 
   ImGui::SeparatorText("Capture");
   ImGui::BeginDisabled(lane_detection_initializing || lane_detection_active);
   {
-    ImGui::SliderInt(
-        "X", &capture_settings_.region.x, 0,
-        kPrimaryMonitorResolution.first - capture_settings_.region.width);
-    ImGui::SliderInt(
-        "Y", &capture_settings_.region.y, 0,
-        kPrimaryMonitorResolution.second - capture_settings_.region.height);
-    ImGui::SliderInt(
-        "Width", &capture_settings_.region.width, 1,
-        kPrimaryMonitorResolution.first - capture_settings_.region.x);
-    ImGui::SliderInt(
-        "Height", &capture_settings_.region.height, 1,
-        kPrimaryMonitorResolution.second - capture_settings_.region.y);
+    ImGui::SliderInt("X", &capture_settings_.region.x, 0,
+                     kPrimaryMonitorResolution.first - capture_settings_.region.width);
+    ImGui::SliderInt("Y", &capture_settings_.region.y, 0,
+                     kPrimaryMonitorResolution.second - capture_settings_.region.height);
+    ImGui::SliderInt("Width", &capture_settings_.region.width, 1,
+                     kPrimaryMonitorResolution.first - capture_settings_.region.x);
+    ImGui::SliderInt("Height", &capture_settings_.region.height, 1,
+                     kPrimaryMonitorResolution.second - capture_settings_.region.y);
   }
   ImGui::EndDisabled();
 }

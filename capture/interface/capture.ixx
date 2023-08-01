@@ -28,8 +28,7 @@ struct Settings {
   std::uint32_t device_index{0};
   std::uint32_t output_index{0};
   std::uint32_t frame_buffer_capacity{16};
-  cv::Rect region{0, 0, utils::QueryPrimaryMonitorResolution().first,
-                  utils::QueryPrimaryMonitorResolution().second};
+  cv::Rect region{0, 0, utils::QueryPrimaryMonitorResolution().first, utils::QueryPrimaryMonitorResolution().second};
 };
 
 class CaptureManager {
@@ -78,8 +77,7 @@ capture::CaptureManager::~CaptureManager() {
   }
 }
 
-capture::Camera* capture::CaptureManager::Start(
-    const capture::Settings& settings) {
+capture::Camera* capture::CaptureManager::Start(const capture::Settings& settings) {
   std::lock_guard<std::mutex> lock{mutex_};
 
   auto Initialize = []() {
@@ -97,14 +95,12 @@ capture::Camera* capture::CaptureManager::Start(
     throw std::logic_error{"Camera is already started."};
   if (settings.device_index >= devices_.size())
     throw std::out_of_range{"Device index is out of range."};
-  if (settings.output_index >=
-      devices_[settings.device_index].DXGIOutputCount())
+  if (settings.output_index >= devices_[settings.device_index].DXGIOutputCount())
     throw std::out_of_range{"Output index is out of range."};
 
-  camera_ = std::make_unique<capture::Camera>(
-      devices_[settings.device_index],
-      devices_[settings.device_index].DXGIOutput(settings.output_index),
-      settings.frame_buffer_capacity, settings.region);
+  camera_ = std::make_unique<capture::Camera>(devices_[settings.device_index],
+                                              devices_[settings.device_index].DXGIOutput(settings.output_index),
+                                              settings.frame_buffer_capacity, settings.region);
   camera_->StartCapture();
   return camera_.get();
 }

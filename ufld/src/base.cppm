@@ -67,9 +67,8 @@ class LaneDetectorBase : public ILaneDetector {
    * @param preview optional preview image (visualization)
    * @return        lane detection result
    */
-  [[nodiscard]] LaneDetectionResult Detect(
-      const cv::Mat& image,
-      std::optional<cv::Mat> preview = std::nullopt) override;
+  [[nodiscard]] LaneDetectionResult Detect(const cv::Mat& image,
+                                           std::optional<cv::Mat> preview = std::nullopt) override;
 
   /**
    * Get the model directory.
@@ -96,8 +95,7 @@ class LaneDetectorBase : public ILaneDetector {
    * @param version
    * @param variant
    */
-  LaneDetectorBase(const std::filesystem::path& model_path, Version version,
-                   std::variant<v1::Variant> variant);
+  LaneDetectorBase(const std::filesystem::path& model_path, Version version, std::variant<v1::Variant> variant);
 
   std::filesystem::path model_directory_{};
   std::string cache_directory_string_{};  // String for lifetime
@@ -126,8 +124,7 @@ class LaneDetectorBase : public ILaneDetector {
    * @param image   image
    * @return        pre-process result
    */
-  [[nodiscard]] virtual PreProcessResult PreProcess(
-      const cv::Mat& image) const = 0;
+  [[nodiscard]] virtual PreProcessResult PreProcess(const cv::Mat& image) const = 0;
 
   /**
    * Post-process the outputs of the model.
@@ -135,9 +132,8 @@ class LaneDetectorBase : public ILaneDetector {
    * @param pre_process_result  pre-process result
    * @return                    post-process result
    */
-  [[nodiscard]] virtual PostProcessResult PostProcess(
-      const std::vector<Ort::Value>& outputs,
-      const PreProcessResult& pre_process_result) const = 0;
+  [[nodiscard]] virtual PostProcessResult PostProcess(const std::vector<Ort::Value>& outputs,
+                                                      const PreProcessResult& pre_process_result) const = 0;
 
   /**
    * Get the model path.
@@ -145,8 +141,7 @@ class LaneDetectorBase : public ILaneDetector {
    * @param input_aspect_ratio  input aspect ratio
    * @return                    center crop area
    */
-  [[nodiscard]] static cv::Rect ComputeCenterCrop(const cv::Mat& image,
-                                                  float input_aspect_ratio);
+  [[nodiscard]] static cv::Rect ComputeCenterCrop(const cv::Mat& image, float input_aspect_ratio);
 
   /**
    * Pre-process colors of an image.
@@ -197,23 +192,20 @@ class LaneDetectorBase : public ILaneDetector {
 
 // -------- Implementation --------
 
-ufld::LaneDetectionResult ufld::LaneDetectorBase::Detect(
-    const cv::Mat& image, std::optional<cv::Mat> preview) {
+ufld::LaneDetectionResult ufld::LaneDetectorBase::Detect(const cv::Mat& image, std::optional<cv::Mat> preview) {
   std::lock_guard<std::mutex> lock{detection_mutex_};
   const auto pre_process_result = PreProcess(image);
   const auto inference_result = Inference(pre_process_result.processed_image);
-  auto post_process_result =
-      PostProcess(inference_result.outputs, pre_process_result);
+  auto post_process_result = PostProcess(inference_result.outputs, pre_process_result);
 
   if (preview.has_value()) {
     ufld::utils::DrawLanes(post_process_result.lanes, preview.value());
     ufld::utils::DrawInputArea(pre_process_result.crop_area, preview.value());
   }
 
-  ufld::LaneDetectionStatistics statistics{
-      .pre_process_duration = pre_process_result.duration,
-      .inference_duration = inference_result.duration,
-      .post_process_duration = post_process_result.duration};
+  ufld::LaneDetectionStatistics statistics{.pre_process_duration = pre_process_result.duration,
+                                           .inference_duration = inference_result.duration,
+                                           .post_process_duration = post_process_result.duration};
 
   return {.lanes = std::move(post_process_result.lanes),
           .preview = std::move(preview.value()),
@@ -232,9 +224,8 @@ std::variant<ufld::v1::Variant> ufld::LaneDetectorBase::ModelVariant() const {
   return variant_;
 }
 
-ufld::LaneDetectorBase::LaneDetectorBase(
-    const std::filesystem::path& model_path, Version version,
-    std::variant<v1::Variant> variant)
+ufld::LaneDetectorBase::LaneDetectorBase(const std::filesystem::path& model_path, Version version,
+                                         std::variant<v1::Variant> variant)
     : model_directory_{model_path.parent_path()},
       cache_directory_string_{(model_directory_ / "cache").string()},
       version_{version},
@@ -244,10 +235,8 @@ ufld::LaneDetectorBase::LaneDetectorBase(
   InitializeOutputs();
 }
 
-cv::Rect ufld::LaneDetectorBase::ComputeCenterCrop(const cv::Mat& image,
-                                                   float input_aspect_ratio) {
-  const auto image_aspect_ratio =
-      static_cast<float>(image.cols) / static_cast<float>(image.rows);
+cv::Rect ufld::LaneDetectorBase::ComputeCenterCrop(const cv::Mat& image, float input_aspect_ratio) {
+  const auto image_aspect_ratio = static_cast<float>(image.cols) / static_cast<float>(image.rows);
   if (image_aspect_ratio > input_aspect_ratio) {  // Crop in X
     //  |- -------------- -|
     //  |    | x    x |    |
@@ -256,8 +245,7 @@ cv::Rect ufld::LaneDetectorBase::ComputeCenterCrop(const cv::Mat& image,
     //  |    | x    x |    |
     //  |    | x    x |    |
     //  |- -------------- -|
-    const auto pixels_to_crop = static_cast<int32_t>(
-        static_cast<float>(image.rows) * input_aspect_ratio);
+    const auto pixels_to_crop = static_cast<int32_t>(static_cast<float>(image.rows) * input_aspect_ratio);
     const auto x_offset = (image.cols - pixels_to_crop) / 2;
     cv::Rect crop_area{};
     crop_area.x = x_offset;
@@ -273,8 +261,7 @@ cv::Rect ufld::LaneDetectorBase::ComputeCenterCrop(const cv::Mat& image,
     // |------------------|
     // |                  |
     // |- -------------- -|
-    const auto pixels_to_crop = static_cast<int32_t>(
-        static_cast<float>(image.cols) / input_aspect_ratio);
+    const auto pixels_to_crop = static_cast<int32_t>(static_cast<float>(image.cols) / input_aspect_ratio);
     const auto y_offset = (image.rows - pixels_to_crop) / 2;
     cv::Rect crop_area{};
     crop_area.x = 0;
@@ -295,11 +282,9 @@ cv::Mat ufld::LaneDetectorBase::ColorPreProcess(const cv::Mat& image) {
   return (converted_image - mean) / std;
 }
 
-void ufld::LaneDetectorBase::InitializeSession(
-    const std::filesystem::path& model_path) {
+void ufld::LaneDetectorBase::InitializeSession(const std::filesystem::path& model_path) {
   if (!std::filesystem::exists(model_path))
-    throw std::invalid_argument{"Model file does not exist: " +
-                                model_path.string()};
+    throw std::invalid_argument{"Model file does not exist: " + model_path.string()};
 
   Ort::SessionOptions session_options{};
   session_options.SetIntraOpNumThreads(1);
@@ -334,8 +319,7 @@ void ufld::LaneDetectorBase::InitializeSession(
   try {
     session_ = Ort::Session(env_, model_path.c_str(), session_options);
   } catch (const Ort::Exception& e) {
-    std::cerr << "Failed to create OnnxRuntime session: " << e.what()
-              << std::endl;
+    std::cerr << "Failed to create OnnxRuntime session: " << e.what() << std::endl;
     throw;
   }
 }
@@ -343,35 +327,28 @@ void ufld::LaneDetectorBase::InitializeSession(
 void ufld::LaneDetectorBase::InitializeInput() {
   assert(session_.GetInputCount() == 1);
 
-  const auto allocated_input_name =
-      session_.GetInputNameAllocated(0, allocator_);
+  const auto allocated_input_name = session_.GetInputNameAllocated(0, allocator_);
   input_name_ = std::string{allocated_input_name.get()};
 
   Ort::TypeInfo input_type_info = session_.GetInputTypeInfo(0);
   assert(input_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
   input_dimensions_ = input_type_info.GetTensorTypeAndShapeInfo().GetShape();
 
-  input_tensor_size_ =
-      std::accumulate(input_dimensions_.begin(), input_dimensions_.end(), 1LL,
-                      std::multiplies<>());
+  input_tensor_size_ = std::accumulate(input_dimensions_.begin(), input_dimensions_.end(), 1LL, std::multiplies<>());
 }
 
 void ufld::LaneDetectorBase::InitializeOutputs() {
-  for (auto output_index = 0; output_index < session_.GetOutputCount();
-       ++output_index) {
-    const auto allocated_output_name =
-        session_.GetOutputNameAllocated(output_index, allocator_);
+  for (auto output_index = 0; output_index < session_.GetOutputCount(); ++output_index) {
+    const auto allocated_output_name = session_.GetOutputNameAllocated(output_index, allocator_);
     output_names_.emplace_back(allocated_output_name.get());
 
     Ort::TypeInfo output_type_info = session_.GetOutputTypeInfo(output_index);
     assert(output_type_info.GetONNXType() == ONNX_TYPE_TENSOR);
-    output_dimensions_.emplace_back(
-        output_type_info.GetTensorTypeAndShapeInfo().GetShape());
+    output_dimensions_.emplace_back(output_type_info.GetTensorTypeAndShapeInfo().GetShape());
 
     const auto& output_dimensions = output_dimensions_.back();
     output_tensor_sizes_.emplace_back(
-        std::accumulate(output_dimensions.begin(), output_dimensions.end(), 1LL,
-                        std::multiplies<>()));
+        std::accumulate(output_dimensions.begin(), output_dimensions.end(), 1LL, std::multiplies<>()));
   }
 }
 
@@ -380,31 +357,25 @@ Ort::Value ufld::LaneDetectorBase::InitializeInputTensor(const cv::Mat& image) {
   cv::dnn::blobFromImage(image, preprocessed_image);
 
   input_tensor_data_.resize(static_cast<size_t>(input_tensor_size_));
-  std::copy(preprocessed_image.begin<float>(), preprocessed_image.end<float>(),
-            input_tensor_data_.begin());
+  std::copy(preprocessed_image.begin<float>(), preprocessed_image.end<float>(), input_tensor_data_.begin());
 
-  Ort::MemoryInfo memory_info =
-      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-  return Ort::Value::CreateTensor<float>(
-      memory_info, input_tensor_data_.data(), input_tensor_data_.size(),
-      input_dimensions_.data(), input_dimensions_.size());
+  Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  return Ort::Value::CreateTensor<float>(memory_info, input_tensor_data_.data(), input_tensor_data_.size(),
+                                         input_dimensions_.data(), input_dimensions_.size());
 }
 
 std::vector<Ort::Value> ufld::LaneDetectorBase::InitializeOutputTensors() {
   output_tensor_data_.clear();
-  Ort::MemoryInfo memory_info =
-      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
   std::vector<Ort::Value> output_tensors;
-  for (size_t output_index = 0; output_index < session_.GetOutputCount();
-       ++output_index) {
+  for (size_t output_index = 0; output_index < session_.GetOutputCount(); ++output_index) {
     output_tensor_data_.emplace_back();
     auto& output_tensor_data = output_tensor_data_.back();
-    output_tensor_data.resize(
-        static_cast<size_t>(output_tensor_sizes_[output_index]));
+    output_tensor_data.resize(static_cast<size_t>(output_tensor_sizes_[output_index]));
     auto& output_dimensions = output_dimensions_[output_index];
-    output_tensors.emplace_back(Ort::Value::CreateTensor<float>(
-        memory_info, output_tensor_data.data(), output_tensor_data.size(),
-        output_dimensions.data(), output_dimensions.size()));
+    output_tensors.emplace_back(Ort::Value::CreateTensor<float>(memory_info, output_tensor_data.data(),
+                                                                output_tensor_data.size(), output_dimensions.data(),
+                                                                output_dimensions.size()));
   }
   return output_tensors;
 }
@@ -426,13 +397,12 @@ ufld::InferenceResult ufld::LaneDetectorBase::Inference(const cv::Mat& image) {
     return output_names;
   };
 
-  session_.Run(Ort::RunOptions{nullptr}, &input_name, &input_tensor, 1,
-               OutputNamesToRaw().data(), output_tensors.data(),
-               output_tensors.size());
+  session_.Run(Ort::RunOptions{nullptr}, &input_name, &input_tensor, 1, OutputNamesToRaw().data(),
+               output_tensors.data(), output_tensors.size());
 
   ufld::InferenceResult result{};
-  result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::steady_clock::now() - start_time);
+  result.duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time);
   result.outputs = std::move(output_tensors);
   return result;
 }

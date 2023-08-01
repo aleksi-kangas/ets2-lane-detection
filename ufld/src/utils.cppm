@@ -14,8 +14,7 @@ namespace ufld::utils {
  * @param lanes input lanes
  * @param image image to draw on
  */
-void DrawLanes(const std::vector<std::vector<cv::Point2f>>& lanes,
-               cv::Mat& image);
+void DrawLanes(const std::vector<std::vector<cv::Point2f>>& lanes, cv::Mat& image);
 /**
  * Draw the input area on the image.
  * @param inputArea input area
@@ -26,15 +25,11 @@ void DrawInputArea(cv::Rect inputArea, cv::Mat& image);
 
 // -------- Implementation --------
 
-void DrawLanePoints(const std::vector<std::vector<cv::Point2f>>& lanes,
-                    cv::Mat& image,
-                    std::array<bool, 4> lanes_to_draw = {true, true, true,
-                                                         true}) {
+void DrawLanePoints(const std::vector<std::vector<cv::Point2f>>& lanes, cv::Mat& image,
+                    std::array<bool, 4> lanes_to_draw = {true, true, true, true}) {
   assert(lanes.size() <= 4);
-  const std::array<cv::Scalar, 4> kLaneColors{{{255, 0, 0, 255},
-                                               {0, 255, 0, 255},
-                                               {0, 0, 255, 255},
-                                               {255, 255, 0, 255}}};
+  const std::array<cv::Scalar, 4> kLaneColors{
+      {{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}, {255, 255, 0, 255}}};
   for (uint32_t lane_index = 0; lane_index < lanes.size(); ++lane_index) {
     if (!lanes_to_draw[lane_index])
       continue;
@@ -47,8 +42,7 @@ void DrawLanePoints(const std::vector<std::vector<cv::Point2f>>& lanes,
   }
 }
 
-void DrawCenterLaneMask(const std::vector<std::vector<cv::Point2f>>& lanes,
-                        cv::Mat& image) {
+void DrawCenterLaneMask(const std::vector<std::vector<cv::Point2f>>& lanes, cv::Mat& image) {
   assert(lanes.size() <= 4);
   const auto& left_divider = lanes[1];
   const auto& right_divider = lanes[2];
@@ -57,16 +51,13 @@ void DrawCenterLaneMask(const std::vector<std::vector<cv::Point2f>>& lanes,
   cv::Mat mask = image.clone();
   std::vector<cv::Point> lane_polygon{};
   lane_polygon.reserve(left_divider.size() + right_divider.size());
-  lane_polygon.insert(lane_polygon.end(), left_divider.begin(),
-                      left_divider.end());
-  lane_polygon.insert(lane_polygon.end(), right_divider.rbegin(),
-                      right_divider.rend());
+  lane_polygon.insert(lane_polygon.end(), left_divider.begin(), left_divider.end());
+  lane_polygon.insert(lane_polygon.end(), right_divider.rbegin(), right_divider.rend());
   cv::fillPoly(mask, {lane_polygon}, cv::Scalar{255, 191, 0, 255});
   cv::addWeighted(mask, 0.3, image, 0.7, 0, image);
 }
 
-void ufld::utils::DrawLanes(const std::vector<std::vector<cv::Point2f>>& lanes,
-                            cv::Mat& image) {
+void ufld::utils::DrawLanes(const std::vector<std::vector<cv::Point2f>>& lanes, cv::Mat& image) {
   assert(lanes.size() <= 4);
   DrawLanePoints(lanes, image, {false, true, true, false});
   DrawCenterLaneMask(lanes, image);

@@ -78,8 +78,7 @@ class ILaneDetector {
    * @param preview optional preview image (visualization)
    * @return        lane detection result
    */
-  [[nodiscard]] virtual LaneDetectionResult Detect(
-      const cv::Mat& image, std::optional<cv::Mat> preview) = 0;
+  [[nodiscard]] virtual LaneDetectionResult Detect(const cv::Mat& image, std::optional<cv::Mat> preview) = 0;
 
   /**
    * Get the model directory.
@@ -108,7 +107,6 @@ class ILaneDetector {
  * @param settings  lane detector settings
  * @return          lane detector
  */
-[[nodiscard]] std::unique_ptr<ufld::ILaneDetector> MakeLaneDetector(
-    const Settings& settings);
+[[nodiscard]] std::unique_ptr<ufld::ILaneDetector> MakeLaneDetector(const Settings& settings);
 
 }  // namespace ufld

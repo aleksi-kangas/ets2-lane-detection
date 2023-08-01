@@ -46,8 +46,7 @@ class Device {
 
 // -------- Implementation --------
 
-capture::Device::Device(CComPtr<IDXGIAdapter1> dxgi_adapter1)
-    : dxgi_adapter1_{std::move(dxgi_adapter1)} {
+capture::Device::Device(CComPtr<IDXGIAdapter1> dxgi_adapter1) : dxgi_adapter1_{std::move(dxgi_adapter1)} {
   dxgi_adapter1_->GetDesc1(&dxgi_adapter_desc1_);
   // D3D11CreateDevice requires an unknown driver type when a DXGI adapter is provided
   constexpr D3D_DRIVER_TYPE kDriverType = D3D_DRIVER_TYPE_UNKNOWN;
@@ -60,11 +59,9 @@ capture::Device::Device(CComPtr<IDXGIAdapter1> dxgi_adapter1)
   constexpr UINT kCreateDeviceFlags = 0;
 #endif
 
-  const HRESULT hr = D3D11CreateDevice(
-      dxgi_adapter1_, kDriverType, nullptr, kCreateDeviceFlags,
-      feature_levels.data(), static_cast<UINT>(feature_levels.size()),
-      D3D11_SDK_VERSION, &d3d11_device_, &d3d_feature_level_,
-      &d3d11_device_context_);
+  const HRESULT hr = D3D11CreateDevice(dxgi_adapter1_, kDriverType, nullptr, kCreateDeviceFlags, feature_levels.data(),
+                                       static_cast<UINT>(feature_levels.size()), D3D11_SDK_VERSION, &d3d11_device_,
+                                       &d3d_feature_level_, &d3d11_device_context_);
   if (FAILED(hr)) {
     throw std::runtime_error{"TODO"};  // TODO
   }
@@ -100,17 +97,13 @@ uint64_t capture::Device::DedicatedVideoMemory() const {
 }
 
 std::wstring capture::Device::Description() const {
-  return {dxgi_adapter_desc1_.Description,
-          dxgi_adapter_desc1_.Description +
-              wcslen(dxgi_adapter_desc1_.Description)};
+  return {dxgi_adapter_desc1_.Description, dxgi_adapter_desc1_.Description + wcslen(dxgi_adapter_desc1_.Description)};
 }
 
 std::vector<CComPtr<IDXGIOutput1>> capture::Device::EnumerateDXGIOutputs() {
   std::vector<CComPtr<IDXGIOutput1>> dxgi_outputs;
   CComPtr<IDXGIOutput> dxgi_output{nullptr};
-  for (uint32_t i = 0;
-       dxgi_adapter1_->EnumOutputs(i, &dxgi_output) != DXGI_ERROR_NOT_FOUND;
-       ++i) {
+  for (uint32_t i = 0; dxgi_adapter1_->EnumOutputs(i, &dxgi_output) != DXGI_ERROR_NOT_FOUND; ++i) {
     CComQIPtr<IDXGIOutput1> dxgi_output1{dxgi_output};
     if (!dxgi_output1) {
       throw std::runtime_error{"TODO"};  // TODO
