@@ -1,7 +1,7 @@
 {
   "name": "ets2-lane-detection",
   "version-string": "1.0.0",
-  "builtin-baseline": "2f6176ce98fee807a207dc9e8fec213f111c291b",
+  "builtin-baseline": "9d47b24eacbd1cd94f139457ef6cd35e5d92cc84",
   "dependencies": [
     {
       "name": "opencv4",
