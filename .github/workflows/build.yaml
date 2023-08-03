@@ -1,0 +1,37 @@
+name: "Build"
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  job:
+    name: Build
+    runs-on: windows-latest
+    env:
+      VCPKG_DEFAULT_TRIPLET: x64-windows
+
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: "Setup MSVC"
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: "Setup CMake"
+        uses: lukka/get-cmake@latest
+
+      - name: "Restore from cache and setup vcpkg executable and data files."
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: 'vcpkg.json'
+
+      - name: "Configure and build".
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: 'ninja-x64-vcpkg-release'
+          buildPreset: 'x64-release'
