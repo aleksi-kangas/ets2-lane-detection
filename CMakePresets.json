@@ -15,7 +15,10 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "VCPKG_ROOT": "vcpkg",
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "./vcpkg/scripts/buildsystems/vcpkg.cmake"
+        },
         "VCPKG_TARGET_TRIPLET": "x64-windows"
       },
       "condition": {
@@ -23,9 +26,11 @@
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
+      "environment": {
+        "VCPKG_ROOT": "./vcpkg/scripts/buildsystems/vcpkg.cmake"
+      },
       "generator": "Ninja",
       "hidden": true,
-      "toolchainFile": "vcpkg/scripts/buildsystems/vcpkg.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "Visual Studio"
