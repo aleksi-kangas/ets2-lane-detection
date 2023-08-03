@@ -2,18 +2,19 @@
   "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 21,
+    "minor": 26,
     "patch": 0
   },
   "configurePresets": [
     {
-      "name": "base",
+      "name": "base-ninja-x64-vcpkg",
+      "displayName": "Ninja (vcpkg)",
+      "description": "Configure with Ninja generator and vcpkg toolchain file",
       "architecture": {
         "value": "x64",
         "strategy": "external"
       },
       "cacheVariables": {
-        "VCPKG_ROOT": "vcpkg",
         "VCPKG_TARGET_TRIPLET": "x64-windows"
       },
       "condition": {
@@ -31,15 +32,28 @@
       }
     },
     {
-      "name": "x64-debug",
-      "inherits": "base",
+      "name": "ninja-x64-vcpkg-debug",
+      "displayName": "Ninja Multi-Config (vcpkg) Debug",
+      "description": "Configure with Ninja generator and vcpkg toolchain file",
+      "inherits": "base-ninja-x64-vcpkg",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "x64-release",
-      "inherits": "base",
+      "name": "ninja-x64-vcpkg-relwithdebinfo",
+      "displayName": "Ninja Multi-Config (vcpkg) RelWithDebInfo",
+      "description": "Configure with Ninja generator and vcpkg toolchain file",
+      "inherits": "base-ninja-x64-vcpkg",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "ninja-x64-vcpkg-release",
+      "displayName": "Ninja Multi-Config (vcpkg) Release",
+      "description": "Configure with Ninja generator and vcpkg toolchain file",
+      "inherits": "base-ninja-x64-vcpkg",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -48,11 +62,24 @@
   "buildPresets": [
     {
       "name": "x64-debug",
-      "configurePreset": "x64-debug"
+      "displayName": "x64-debug",
+      "description": "Build x64-debug",
+      "configurePreset": "ninja-x64-vcpkg-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "x64-relwithdebinfo",
+      "displayName": "x64-relwithdebinfo",
+      "description": "Build x64-relwithdebinfo",
+      "configurePreset": "ninja-x64-vcpkg-relwithdebinfo",
+      "configuration": "RelWithDebInfo"
     },
     {
       "name": "x64-release",
-      "configurePreset": "x64-release"
+      "displayName": "x64-release",
+      "description": "Build x64-release",
+      "configurePreset": "ninja-x64-vcpkg-release",
+      "configuration": "Release"
     }
   ]
 }
