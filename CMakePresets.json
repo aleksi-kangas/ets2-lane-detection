@@ -15,6 +15,7 @@
         "strategy": "external"
       },
       "cacheVariables": {
+        "VCPKG_ROOT": "vcpkg",
         "VCPKG_TARGET_TRIPLET": "x64-windows"
       },
       "condition": {

@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.26...3.26 FATAL_ERROR)
+
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "vcpkg toolchain file")
+
 project(ETS2_Lane_Detection CXX)
 
 # Copy the OnnxRuntime cmake files to the vcpkg installed directory

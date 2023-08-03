@@ -5,12 +5,12 @@
   "dependencies": [
     {
       "name": "opencv4",
-      "version>=": "4.7.0#3",
+      "version>=": "4.7.0",
       "platform": "x64 & windows"
     },
     {
       "name": "onnxruntime-gpu",
-      "version>=": "1.14.1#1",
+      "version>=": "1.14.1",
       "platform": "x64 & windows"
     },
     {
