@@ -1,4 +1,4 @@
-name: "Build"
+name: "build"
 on:
   push:
     branches: [ master ]
@@ -8,23 +8,66 @@ on:
 
 jobs:
   build:
-    name: Build
-    runs-on: windows-latest
+    name: ${{ matrix.os }}-${{ github.workflow }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest ]
+        include:
+          - os: windows-latest
+            triplet: x64-windows
     env:
-      VCPKG_DEFAULT_TRIPLET: x64-windows
+      _VCPKG_: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
     steps:
+      - name: "Set env vars to use GitHub Actions cache for vcpkg binary cache"
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: "Checkout repository"
         uses: actions/checkout@v3
         with:
           submodules: true
+
+      - name: "Create binary cache directory '${{ env.VCPKG_DEFAULT_BINARY_CACHE }}'"
+        run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
+        shell: bash
+
       - name: "Setup CMake"
         uses: lukka/get-cmake@v3.26.4
-      - name: "Setup vcpkg"
-        uses: lukka/run-vcpkg@v11
+
+      - name: "Restore vcpkg"
+        uses: actions/cache@v3
         with:
-          vcpkgJsonGlob: "**/vcpkg.json"
-      - name: "Configure and build"
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: "ninja-x64-vcpkg-release"
-          buildPreset: "x64-release"
+          # The first path is the location of vcpkg: it contains the vcpkg executable and data files, as long as the
+          # built package archives (aka binary cache) which are located by VCPKG_DEFAULT_BINARY_CACHE env var.
+          # The other paths starting with '!' are exclusions: they contain termporary files generated during the build of the installed packages.
+          path: |
+            ${{ env._VCPKG_ }}
+            !${{ env._VCPKG_ }}/buildtrees
+            !${{ env._VCPKG_ }}/packages
+            !${{ env._VCPKG_ }}/downloads
+            !${{ env._VCPKG_ }}/installed
+          # The key is composed in a way that it gets properly invalidated whenever a different version of vcpkg is being used.
+          key: |
+            ${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}
+
+      - name: "Setup MSVC"
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: "Restore the dependencies from cache and generate project files"
+        run: |
+          cmake --preset ninja-multi-vcpkg
+
+      - name: "Build Release configuration"
+        run: |
+          cmake --build --preset ninja-vcpkg-release
+
+      #- name: "Run tests"
+      #  run: |
+      #    ctest --preset test-release
