@@ -63,11 +63,11 @@ jobs:
 
       - name: "Restore the dependencies from cache and generate project files"
         run: |
-          cmake --preset ninja-x64-vcpkg-release
+          cmake --preset ninja-x64-vcpkg-release -B cmake-build-ninja-x64-vcpkg-release
 
       - name: "Build Release configuration"
         run: |
-          cmake --build --preset x64-release
+          cmake --build cmake-build-ninja-x64-vcpkg-release --preset x64-release
 
       #- name: "Run tests"
       #  run: |
