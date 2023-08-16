@@ -24,17 +24,29 @@ add_subdirectory(ets2ld)
 add_subdirectory(ufld)
 
 add_executable(${PROJECT_NAME} main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE ets2ld)
+target_link_libraries(${PROJECT_NAME} PUBLIC ets2ld)
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
-# Copy the OnnxRuntime provider DLLs which are lazy loaded
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini"
         "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_cuda.dll"
         "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_shared.dll"
         "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_tensorrt.dll"
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+install(TARGETS ${PROJECT_NAME}
+        RUNTIME_DEPENDENCIES
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll")
+
+install(FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini"
+        "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_cuda.dll"
+        "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_shared.dll"
+        "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_tensorrt.dll"
+        DESTINATION bin)
 
 if (${BUILD_TESTS})
     enable_testing()

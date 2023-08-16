@@ -15,6 +15,10 @@
         "strategy": "external"
       },
       "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": {
+          "type": "PATH",
+          "value": "${sourceDir}/install"
+        },
         "CMAKE_TOOLCHAIN_FILE": {
           "type": "FILEPATH",
           "value": "./vcpkg/scripts/buildsystems/vcpkg.cmake"

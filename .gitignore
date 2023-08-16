@@ -4,3 +4,4 @@ cmake*
 !CMakePresets.json
 models/*
 !models/README.md
+install
