@@ -44,7 +44,9 @@ install(FILES
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/docs"
         DESTINATION install
-        FILES_MATCHING PATTERN "*.md")
+        FILES_MATCHING
+        PATTERN "*.md"
+        PATTERN "BUILD.md" EXCLUDE)
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/models"
         DESTINATION install
