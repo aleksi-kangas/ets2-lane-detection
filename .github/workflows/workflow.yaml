@@ -79,7 +79,7 @@ jobs:
           cmake --install cmake-build-ninja-x64-vcpkg-release
 
       - name: "Zip Release configuration"
-        uses: actions/checkout@master
+        uses: thedoctor0/zip-release@0.7.1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           type: zip
@@ -92,6 +92,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: release.zip
-          tag_name: ${{ github.ref }}=
+          tag_name: ${{ github.ref }}
           draft: true
           prerelease: false
