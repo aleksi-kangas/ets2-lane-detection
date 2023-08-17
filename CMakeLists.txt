@@ -1,13 +1,6 @@
 cmake_minimum_required(VERSION 3.26...3.26 FATAL_ERROR)
 project(ETS2_Lane_Detection CXX)
 
-# Copy the OnnxRuntime cmake files to the vcpkg installed directory
-# These are needed to make the find_package(OnnxRuntime) work
-file(COPY
-        "${CMAKE_CURRENT_SOURCE_DIR}/docs/onnxruntimeConfig.cmake"
-        "${CMAKE_CURRENT_SOURCE_DIR}/docs/onnxruntimeVersion.cmake"
-        DESTINATION "${VCPKG_INSTALLED_DIR}/x64-windows/share/onnxruntime-gpu")
-
 option(BUILD_TESTS "Build tests" ON)
 
 if (NOT MSVC)

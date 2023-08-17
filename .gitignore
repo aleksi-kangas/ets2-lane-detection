@@ -1,5 +1,6 @@
 .idea
 cmake*
+!ufld/cmake
 !CMakeLists.txt
 !CMakePresets.json
 models/*
