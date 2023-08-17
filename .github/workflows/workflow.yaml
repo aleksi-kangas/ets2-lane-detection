@@ -85,13 +85,12 @@ jobs:
           type: zip
           filename: release.zip
           directory: install
-          path: install
 
       - name: "Create Release to GitHub"
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: release.zip
+          files: install/release.zip
           tag_name: ${{ github.ref }}
           draft: true
           prerelease: false
