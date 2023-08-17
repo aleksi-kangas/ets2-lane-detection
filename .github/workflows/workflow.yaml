@@ -80,8 +80,9 @@ jobs:
 
       - name: "Zip Release configuration"
         uses: vimtor/action-zip@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: install/bin/
+          files: install/
           recursive: false
           dest: release.zip
 
@@ -89,10 +90,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: |
-            release.zip
-          tag_name: ${{ github.ref }}
-          body: |
-            Release ${{ github.ref }}
+          files: release.zip
+          tag_name: ${{ github.ref }}=
           draft: true
           prerelease: false
