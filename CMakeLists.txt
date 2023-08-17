@@ -30,6 +30,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 
 install(TARGETS ${PROJECT_NAME}
+        DESTINATION install
         RUNTIME_DEPENDENCIES
         PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
         POST_EXCLUDE_REGEXES ".*system32/.*\\.dll")
@@ -39,7 +40,15 @@ install(FILES
         "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_cuda.dll"
         "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_shared.dll"
         "${VCPKG_INSTALLED_DIR}/x64-windows/bin/onnxruntime_providers_tensorrt.dll"
-        DESTINATION bin)
+        DESTINATION install)
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/docs"
+        DESTINATION install
+        FILES_MATCHING PATTERN "*.md")
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/models"
+        DESTINATION install
+        FILES_MATCHING PATTERN "*.md")
 
 if (${BUILD_TESTS})
     enable_testing()

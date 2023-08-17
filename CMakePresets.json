@@ -17,12 +17,13 @@
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": {
           "type": "PATH",
-          "value": "${sourceDir}/install"
+          "value": "${sourceDir}"
         },
         "CMAKE_TOOLCHAIN_FILE": {
           "type": "FILEPATH",
           "value": "./vcpkg/scripts/buildsystems/vcpkg.cmake"
         },
+        "INSTALL_GTEST": "OFF",
         "VCPKG_TARGET_TRIPLET": "x64-windows"
       },
       "condition": {
