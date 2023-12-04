@@ -45,14 +45,14 @@ jobs:
         shell: bash
 
       - name: "Setup CMake"
-        uses: lukka/get-cmake@v3.26.4
+        uses: lukka/get-cmake@v3.27.9
 
       - name: "Restore vcpkg"
         uses: actions/cache@v3
         with:
           # The first path is the location of vcpkg: it contains the vcpkg executable and data files, as long as the
           # built package archives (aka binary cache) which are located by VCPKG_DEFAULT_BINARY_CACHE env var.
-          # The other paths starting with '!' are exclusions: they contain termporary files generated during the build of the installed packages.
+          # The other paths starting with '!' are exclusions: they contain temporary files generated during the build of the installed packages.
           path: |
             ${{ env._VCPKG_ }}
             !${{ env._VCPKG_ }}/buildtrees

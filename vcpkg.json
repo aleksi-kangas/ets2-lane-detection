@@ -5,17 +5,17 @@
   "dependencies": [
     {
       "name": "opencv4",
-      "version>=": "4.7.0#3",
+      "version>=": "4.8.0",
       "platform": "x64 & windows"
     },
     {
       "name": "onnxruntime-gpu",
-      "version>=": "1.14.1#1",
+      "version>=": "1.15.1",
       "platform": "x64 & windows"
     },
     {
       "name": "imgui",
-      "version>=": "1.89.4",
+      "version>=": "1.89.9",
       "platform": "x64 & windows",
       "features": [
         "dx11-binding",
@@ -24,7 +24,7 @@
     },
     {
       "name": "xtensor",
-      "version>=": "0.24.0",
+      "version>=": "0.24.6",
       "platform": "x64 & windows",
       "features": [
         "xsimd"
