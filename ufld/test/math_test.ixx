@@ -3,6 +3,8 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xtensor.hpp>
 
+export module ufld.test;
+
 import ufld;
 
 TEST(UfldMath, SoftMax) {
