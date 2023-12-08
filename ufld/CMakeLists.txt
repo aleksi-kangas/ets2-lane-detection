@@ -35,7 +35,7 @@ target_sources(${PROJECT_NAME}
         src/v1_config.cppm)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${OnnxRuntime_INCLUDE_DIRS} ${xtensor_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${OnnxRuntime_LIBRARIES} ${xtensor_LIBRARIES} xtensor::optimize xtensor::use_xsimd)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${OnnxRuntime_LIBRARIES} xtensor xtensor::optimize xtensor::use_xsimd)
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
