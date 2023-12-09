@@ -1,12 +1,13 @@
 module;
 
 #include <cstdint>
+#include <stdexcept>
 
 #include <atlbase.h>
 #include <d3d11.h>
 #include <dxgi.h>
 
-module capture:surface;
+export module capture:surface;
 
 import :device;
 import :output;
@@ -22,8 +23,8 @@ class Surface {
   Surface(Surface&&) = delete;
   Surface& operator=(Surface&&) = delete;
 
-  DXGI_MAPPED_RECT Map();
-  void UnMap();
+  [[nodiscard]] DXGI_MAPPED_RECT Map() const;
+  void UnMap() const;
 
   [[nodiscard]] ID3D11Texture2D* D3D11Texture2D() const;
 
@@ -40,22 +41,22 @@ class Surface {
 };
 }  // namespace capture
 
-// -------- Implementation --------
-
-capture::Surface::Surface(capture::Device& device, capture::Output& output) : device_{device}, output_{output} {
+capture::Surface::Surface(Device& device, Output& output) : device_{device}, output_{output} {
   Rebuild();
 }
 
-DXGI_MAPPED_RECT capture::Surface::Map() {
+DXGI_MAPPED_RECT capture::Surface::Map() const {
   DXGI_MAPPED_RECT dxgi_mapped_rect{};
-  CComQIPtr<IDXGISurface> dxgi_surface{d3d11_texture2d_};
-  dxgi_surface->Map(&dxgi_mapped_rect, DXGI_MAP_READ);
+  const CComQIPtr<IDXGISurface> dxgi_surface{d3d11_texture2d_};
+  if (FAILED(dxgi_surface->Map(&dxgi_mapped_rect, DXGI_MAP_READ)))
+    throw std::runtime_error{"Map: Failure"};
   return dxgi_mapped_rect;
 }
 
-void capture::Surface::UnMap() {
-  CComQIPtr<IDXGISurface> dxgi_surface{d3d11_texture2d_};
-  dxgi_surface->Unmap();
+void capture::Surface::UnMap() const {
+  const CComQIPtr<IDXGISurface> dxgi_surface{d3d11_texture2d_};
+  if (FAILED(dxgi_surface->Unmap()))
+    throw std::runtime_error{"Unmap: Failure"};
 }
 
 ID3D11Texture2D* capture::Surface::D3D11Texture2D() const {
@@ -67,8 +68,8 @@ void capture::Surface::Rebuild() {
   width_ = width;
   height_ = height;
   if (d3d11_texture2d_ == nullptr) {
-    d3d11_texture2d_desc_.Width = static_cast<UINT>(width_);
-    d3d11_texture2d_desc_.Height = static_cast<UINT>(height_);
+    d3d11_texture2d_desc_.Width = static_cast<std::uint32_t>(width_);
+    d3d11_texture2d_desc_.Height = static_cast<std::uint32_t>(height_);
     d3d11_texture2d_desc_.MipLevels = 1;
     d3d11_texture2d_desc_.ArraySize = 1;
     d3d11_texture2d_desc_.Format = dxgi_format_;
@@ -78,6 +79,7 @@ void capture::Surface::Rebuild() {
     d3d11_texture2d_desc_.BindFlags = 0;
     d3d11_texture2d_desc_.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
     d3d11_texture2d_desc_.MiscFlags = 0;
-    device_.D3D11Device()->CreateTexture2D(&d3d11_texture2d_desc_, nullptr, &d3d11_texture2d_);
+    if (FAILED(device_.D3D11Device()->CreateTexture2D(&d3d11_texture2d_desc_, nullptr, &d3d11_texture2d_)))
+      throw std::runtime_error{"CreateTexture2D: Failure"};
   }
 }

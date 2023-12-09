@@ -20,16 +20,14 @@ find_package(OpenCV REQUIRED)
 add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
         PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES FILES
-        interface/camera.ixx
-        interface/capture.ixx
-        interface/utils.ixx
-
-        src/device.cppm
-        src/duplicator.cppm
-        src/frame_buffer.cppm
-        src/output.cppm
-        src/surface.cppm
-        src/timer.cppm)
+        src/camera.ixx
+        src/capture.ixx
+        src/device.ixx
+        src/duplicator.ixx
+        src/output.ixx
+        src/surface.ixx
+        src/timer.ixx
+        src/utils.ixx)
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES})
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)

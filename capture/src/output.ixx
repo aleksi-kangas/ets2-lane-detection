@@ -1,20 +1,27 @@
 module;
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
 #include <atlbase.h>
-#include <dxgi1_2.h>
+#include <dxgi1_6.h>
 
-module capture:output;
+export module capture:output;
 
 namespace capture {
 class Output {
  public:
-  explicit Output(CComPtr<IDXGIOutput1> dxgi_output);
+  explicit Output(CComPtr<IDXGIOutput6> dxgi_output);
 
-  [[nodiscard]] IDXGIOutput1* DXGIOutput1() const { return dxgi_output_; }
+  Output(const Output&) = default;
+  Output& operator=(const Output&) = default;
+
+  Output(Output&&) = default;
+  Output& operator=(Output&&) = default;
+
+  [[nodiscard]] IDXGIOutput6* DXGIOutput6() const { return dxgi_output_; }
 
   [[nodiscard]] std::wstring DeviceName() const;
   [[nodiscard]] std::pair<std::int32_t, std::int32_t> Resolution() const;
@@ -22,15 +29,14 @@ class Output {
   [[nodiscard]] std::int32_t Width() const;
 
  private:
-  CComPtr<IDXGIOutput1> dxgi_output_{nullptr};
+  CComPtr<IDXGIOutput6> dxgi_output_{nullptr};
   DXGI_OUTPUT_DESC dxgi_output_desc_{};
 };
 }  // namespace capture
 
-// -------- Implementation --------
-
-capture::Output::Output(CComPtr<IDXGIOutput1> dxgi_output) : dxgi_output_{std::move(dxgi_output)} {
-  dxgi_output_->GetDesc(&dxgi_output_desc_);
+capture::Output::Output(CComPtr<IDXGIOutput6> dxgi_output) : dxgi_output_{std::move(dxgi_output)} {
+  if (FAILED(dxgi_output_->GetDesc(&dxgi_output_desc_)))
+    throw std::runtime_error{"GetDesc: Failure"};
 }
 
 std::wstring capture::Output::DeviceName() const {
