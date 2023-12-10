@@ -18,44 +18,20 @@ module;
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-module ets2ld:utils;
+export module ets2ld:utils;
 
 namespace ets2ld::utils {
-/**
- *
- * @return
- */
-std::optional<std::filesystem::path> BrowseFolderDialog();
+export std::optional<std::filesystem::path> BrowseFolderDialog();
 
-/**
- *
- * @param hwnd
- * @return
- */
-std::tuple<CComPtr<ID3D11Device>, CComPtr<IDXGISwapChain>, CComPtr<ID3D11DeviceContext>> CreateDeviceAndSwapChain(
+export std::tuple<CComPtr<ID3D11Device>, CComPtr<IDXGISwapChain>, CComPtr<ID3D11DeviceContext>> CreateDeviceAndSwapChain(
     HWND hwnd);
 
-/**
- *
- * @param device
- * @param swap_chain
- * @return
- */
-CComPtr<ID3D11RenderTargetView> CreateRenderTargetView(ID3D11Device* device, IDXGISwapChain* swap_chain);
+export CComPtr<ID3D11RenderTargetView> CreateRenderTargetView(ID3D11Device* device, IDXGISwapChain* swap_chain);
 }  // namespace ets2ld::utils
 
 namespace ImGui {
-/**
- *
- * @param label
- * @param radius
- * @param thickness
- * @param color
- */
-void Spinner(const char* label, float radius, float thickness, const ImU32& color);
+export void Spinner(const char* label, float radius, float thickness, const ImU32& color);
 }  // namespace ImGui
-
-// -------- Implementation --------
 
 struct ComInit {
   ComInit() {
