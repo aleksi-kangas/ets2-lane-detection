@@ -1,3 +1,5 @@
+#include <compare>
+
 import ets2ld;
 
 int main() {
