@@ -1,3 +1,5 @@
+module;
+
 #include <gtest/gtest.h>
 #include <xtensor/xadapt.hpp>
 #include <xtensor/xarray.hpp>
