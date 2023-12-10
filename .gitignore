@@ -6,4 +6,4 @@ cmake*
 models/*
 !models/README.md
 install
-third-party
+third-party/NVIDIA
