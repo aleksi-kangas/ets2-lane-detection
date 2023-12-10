@@ -1,11 +1,7 @@
-module;
-
 #include <gtest/gtest.h>
 #include <xtensor/xadapt.hpp>
 #include <xtensor/xarray.hpp>
 #include <xtensor/xtensor.hpp>
-
-export module ufld.test;
 
 import ufld;
 

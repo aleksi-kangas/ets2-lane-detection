@@ -18,13 +18,8 @@ FetchContent_Declare(googletest
 FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 
-add_executable(${PROJECT_NAME} test_main.cpp)
-target_sources(${PROJECT_NAME}
-        PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES
-        FILES
-        math_test.ixx)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE ufld gtest)
+add_executable(${PROJECT_NAME} math_test.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ufld gtest gtest_main)
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
