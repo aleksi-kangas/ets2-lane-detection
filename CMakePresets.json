@@ -66,7 +66,8 @@
       "description": "Configure with Ninja generator and vcpkg toolchain file",
       "inherits": "base-ninja-x64-vcpkg",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_BUILD_TYPE": "release"
       }
     }
   ],

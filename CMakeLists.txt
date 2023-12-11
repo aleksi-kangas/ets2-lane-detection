@@ -1,16 +1,16 @@
-cmake_minimum_required(VERSION 3.27...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.28 FATAL_ERROR)
 project(ets2ld_main CXX)
+
+MESSAGE(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+if (VCPKG_BUILD_TYPE)
+    MESSAGE(STATUS "VCPKG build type: ${VCPKG_BUILD_TYPE}")
+endif ()
 
 option(BUILD_TESTS "Build tests" ON)
 
 if (NOT MSVC)
     message(FATAL_ERROR "Only MSVC is supported")
 endif ()
-
-# Enable support for C++20 modules
-# CMake 3.27: https://github.com/Kitware/CMake/blob/v3.27.9/Help/dev/experimental.rst
-set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "aa1f7df0-828a-4fcd-9afc-2dc80491aca7")
-set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 
 add_subdirectory(capture)
 add_subdirectory(ets2ld)

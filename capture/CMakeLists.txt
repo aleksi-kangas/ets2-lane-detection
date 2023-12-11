@@ -3,17 +3,12 @@
 # The original library is licensed under the MIT License.
 # This library is also licensed under the MIT License.
 
-cmake_minimum_required(VERSION 3.27...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.28 FATAL_ERROR)
 project(capture CXX)
 
 if (NOT MSVC)
     message(FATAL_ERROR "Only MSVC is supported")
 endif ()
-
-# Enable support for C++20 modules
-# CMake 3.27: https://github.com/Kitware/CMake/blob/v3.27.9/Help/dev/experimental.rst
-set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "aa1f7df0-828a-4fcd-9afc-2dc80491aca7")
-set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 
 find_package(OpenCV REQUIRED)
 

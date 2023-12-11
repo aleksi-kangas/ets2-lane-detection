@@ -4,23 +4,23 @@
   "builtin-baseline": "9d47b24eacbd1cd94f139457ef6cd35e5d92cc84",
   "dependencies": [
     {
-      "name": "opencv4",
-      "version>=": "4.8.0",
-      "platform": "x64 & windows"
-    },
-    {
-      "name": "onnxruntime-gpu",
-      "version>=": "1.15.1",
-      "platform": "x64 & windows"
-    },
-    {
       "name": "imgui",
-      "version>=": "1.89.9",
+      "version>=": "1.90",
       "platform": "x64 & windows",
       "features": [
         "dx11-binding",
         "win32-binding"
       ]
+    },
+    {
+      "name": "onnxruntime-gpu",
+      "version>=": "1.16.3",
+      "platform": "x64 & windows"
+    },
+    {
+      "name": "opencv4",
+      "version>=": "4.8.0#12",
+      "platform": "x64 & windows"
     },
     {
       "name": "xtensor",
