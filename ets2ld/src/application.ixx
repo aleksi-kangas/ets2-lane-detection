@@ -154,7 +154,9 @@ void ets2ld::Application::HandleLaneDetectionEnableChanged(bool enable) {
     }
   } else {
     detection_thread_.get_stop_source().request_stop();
-    detection_thread_.join();
+    if (detection_thread_.joinable()) {
+      detection_thread_.join();
+    }
     state_ = State::kIdle;
   }
 }
