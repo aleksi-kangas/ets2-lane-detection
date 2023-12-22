@@ -73,10 +73,14 @@ export struct LaneDetectionResult {
   LaneDetectionStatistics statistics{};
 };
 
+struct ImageInfo {
+  cv::Size size{};
+  cv::Rect crop{};
+};
+
 struct PreProcessResult {
-  cv::Mat processed_image{};
-  cv::Size original_size{};
-  cv::Rect crop_area{};
+  cv::Mat image{};
+  ImageInfo image_info{};
   std::chrono::milliseconds duration{0};
 };
 
@@ -106,12 +110,11 @@ class LaneDetector {
 
   [[nodiscard]] InferenceResult Inference(const cv::Mat& image);
 
-  [[nodiscard]] PostProcessResult PostProcess(std::vector<Ort::Value>&& outputs, cv::Rect crop_area,
-                                              cv::Size original_size) const;
-
-  [[nodiscard]] static cv::Rect CenterCropArea(const cv::Mat& image, float input_aspect_ratio);
+  [[nodiscard]] PostProcessResult PostProcess(std::vector<Ort::Value>&& outputs, const ImageInfo& image_info) const;
 
   static void ColorPreProcess(cv::Mat& image);
+  [[nodiscard]] static std::chrono::milliseconds Duration(const std::chrono::high_resolution_clock::time_point& start,
+                                                          const std::chrono::high_resolution_clock::time_point& end);
 
  private:
   std::filesystem::path model_directory_{};
@@ -153,12 +156,11 @@ LaneDetectionResult LaneDetector<C>::Detect(cv::Mat&& image, bool preview) {
     result.preview = image.clone();
   }
   auto pre_process_result = PreProcess(std::move(image));
-  auto inference_result = Inference(pre_process_result.processed_image);
-  auto post_process_result =
-      PostProcess(std::move(inference_result.outputs), pre_process_result.crop_area, pre_process_result.original_size);
+  auto inference_result = Inference(pre_process_result.image);
+  auto post_process_result = PostProcess(std::move(inference_result.outputs), pre_process_result.image_info);
   if (result.preview.has_value()) {
     draw::DrawLanes(post_process_result.lanes, result.preview.value());
-    draw::DrawInputArea(pre_process_result.crop_area, result.preview.value());
+    draw::DrawInputArea(pre_process_result.image_info.crop, result.preview.value());
   }
   result.lanes = post_process_result.lanes;
   result.statistics = {.pre_process_duration = pre_process_result.duration,
@@ -222,53 +224,12 @@ InferenceResult LaneDetector<C>::Inference(const cv::Mat& image) {
   session_.Run(Ort::RunOptions{nullptr}, &input_name, &input_tensor, 1, OutputNamesToRaw().data(),
                output_tensors.data(), output_tensors.size());
 
-  return {
-      .outputs = std::move(output_tensors),
-      .duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time)};
+  return {.outputs = std::move(output_tensors), .duration = Duration(start_time, std::chrono::high_resolution_clock::now())};
 }
 
 template <class C>
-PostProcessResult LaneDetector<C>::PostProcess(std::vector<Ort::Value>&& outputs, cv::Rect crop_area,
-                                               cv::Size original_size) const {
-  return Underlying().PostProcess(std::move(outputs), crop_area, original_size);
-}
-
-template <class C>
-cv::Rect LaneDetector<C>::CenterCropArea(const cv::Mat& image, float input_aspect_ratio) {
-  const auto image_aspect_ratio = static_cast<float>(image.cols) / static_cast<float>(image.rows);
-  if (image_aspect_ratio > input_aspect_ratio) {  // Crop in X
-    //  |- -------------- -|
-    //  |    | x    x |    |
-    //  |    | x    x |    |
-    //  |    | x    x |    |  <- Keep center
-    //  |    | x    x |    |
-    //  |    | x    x |    |
-    //  |- -------------- -|
-    const auto pixels_to_crop = static_cast<std::int32_t>(static_cast<float>(image.rows) * input_aspect_ratio);
-    const auto x_offset = (image.cols - pixels_to_crop) / 2;
-    cv::Rect crop_area{};
-    crop_area.x = x_offset;
-    crop_area.y = 0;
-    crop_area.width = image.cols - 2 * x_offset;
-    crop_area.height = image.rows;
-    return crop_area;
-  } else {  // Crop in Y
-    // |- -------------- -|
-    // |                  |
-    // |------------------|
-    // | x  x  x  x  x  x |  <- Keep center
-    // |------------------|
-    // |                  |
-    // |- -------------- -|
-    const auto pixels_to_crop = static_cast<std::int32_t>(static_cast<float>(image.cols) / input_aspect_ratio);
-    const auto y_offset = (image.rows - pixels_to_crop) / 2;
-    cv::Rect crop_area{};
-    crop_area.x = 0;
-    crop_area.y = y_offset;
-    crop_area.width = image.cols;
-    crop_area.height = image.rows - 2 * y_offset;
-    return crop_area;
-  }
+PostProcessResult LaneDetector<C>::PostProcess(std::vector<Ort::Value>&& outputs, const ImageInfo& image_info) const {
+  return Underlying().PostProcess(std::move(outputs), image_info);
 }
 
 template <class C>
@@ -280,6 +241,12 @@ void LaneDetector<C>::ColorPreProcess(cv::Mat& image) {
   const cv::Scalar std{0.229, 0.224, 0.225};
   image -= mean;
   image /= std;
+}
+
+template <class C>
+std::chrono::milliseconds LaneDetector<C>::Duration(const std::chrono::high_resolution_clock::time_point& start,
+                                                    const std::chrono::high_resolution_clock::time_point& end) {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 }
 
 template <class C>
