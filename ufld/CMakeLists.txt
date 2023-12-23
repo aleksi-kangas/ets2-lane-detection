@@ -25,7 +25,9 @@ target_sources(${PROJECT_NAME}
         src/math.ixx
         src/ufld.ixx
         src/v1.ixx
-        src/v1_config.ixx)
+        src/v1_config.ixx
+        src/v2.ixx
+        src/v2_config.ixx)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${OnnxRuntime_INCLUDE_DIRS} ${xtensor_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${OnnxRuntime_LIBRARIES} xtensor xtensor::optimize xtensor::use_xsimd)

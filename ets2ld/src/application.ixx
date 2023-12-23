@@ -126,15 +126,15 @@ void ets2ld::Application::DetectionLoop(std::stop_token st, capture::Settings&& 
       continue;
     // clang-format off
     std::visit(ufld::Overloaded{
-      [&](ufld::v1::LaneDetector& lane_detector) {
+      [](std::monostate&) {},
+      [&](auto& lane_detector){
         auto result = lane_detector.Detect(std::move(frame.value()), true);
         {
           std::scoped_lock lock{detection_mutex_};
           detection_result_ = std::move(result);
         }
         detection_result_available_.test_and_set();
-      },
-      [](auto&) {}},lane_detector_);
+      }},lane_detector_);
     // clang-format on
   }
 }
@@ -148,8 +148,7 @@ void ets2ld::Application::HandleLaneDetectionEnableChanged(bool enable) {
       StartLaneDetection();
     } else {
       detector_initialization_future_ = std::async(
-          std::launch::async,
-          [](ufld::Settings&& settings) { return ufld::MakeLaneDetector(std::move(settings)); },
+          std::launch::async, [](ufld::Settings&& settings) { return ufld::MakeLaneDetector(std::move(settings)); },
           std::move(ufld_settings));
     }
   } else {

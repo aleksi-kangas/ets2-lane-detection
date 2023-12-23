@@ -339,47 +339,47 @@ void ets2ld::UI::RenderSettingsModel(State state) {
         chosen_model_directory = std::move(path.value());
       }
     }
+    ufld_settings_.model_directory = chosen_model_directory;
 
     // Model selection
     ImGui::Text("Ultra-Fast-Lane-Detection");
-    static constexpr std::array<const char*, 1> kModelVersionComboItems{{"V1"}};
-    static int chosen_model_version = 0;
+    static constexpr std::array<const char*, 2> kModelVersionComboItems{{"V1", "V2"}};
+    static std::int32_t chosen_model_version{0};
     ImGui::Combo("Version", &chosen_model_version, kModelVersionComboItems.data(),
                  static_cast<std::int32_t>(kModelVersionComboItems.size()));
 
     static constexpr std::array<const char*, 2> kModelVariantComboItemsV1{{"CULane", "TuSimple"}};
-    static int chosen_model_variant_v1 = 0;
+    static std::int32_t chosen_model_variant_v1{0};
+
+    static constexpr std::array<const char*, 6> kModelVariantComboItemsV2{
+        {"CULane18", "CULane34", "CurveLanes18", "CurveLanes34", "TuSimple18", "TuSimple34"}};
+    static std::int32_t chosen_model_variant_v2{0};
 
     switch (chosen_model_version) {
-      case 0:
-        static_assert(0 == static_cast<int32_t>(ufld::Version::kV1));
+      case static_cast<std::int32_t>(ufld::Version::kV1): {
         ImGui::Combo("Variant", &chosen_model_variant_v1, kModelVariantComboItemsV1.data(),
                      static_cast<std::int32_t>(kModelVariantComboItemsV1.size()));
-        break;
-      default:
-        throw std::logic_error{"Unknown model version"};
-    }
-
-    ufld_settings_.model_directory = chosen_model_directory;
-    switch (chosen_model_version) {
-      case 0:
         static_assert(0 == static_cast<std::int32_t>(ufld::Version::kV1));
         ufld_settings_.model_version = ufld::Version::kV1;
-        switch (chosen_model_variant_v1) {
-          case 0:
-            static_assert(0 == static_cast<std::int32_t>(ufld::v1::Variant::kCULane));
-            ufld_settings_.model_variant = ufld::v1::Variant::kCULane;
-            break;
-          case 1:
-            static_assert(1 == static_cast<std::int32_t>(ufld::v1::Variant::kTuSimple));
-            ufld_settings_.model_variant = ufld::v1::Variant::kTuSimple;
-            break;
-          default:
-            throw std::logic_error{"Unknown model variant"};
-        }
-        break;
+        static_assert(0 == static_cast<std::int32_t>(ufld::v1::Variant::kCULane));
+        static_assert(1 == static_cast<std::int32_t>(ufld::v1::Variant::kTuSimple));
+        ufld_settings_.model_variant = static_cast<ufld::v1::Variant>(chosen_model_variant_v1);
+      } break;
+      case static_cast<std::int32_t>(ufld::Version::kV2): {
+        ImGui::Combo("Variant", &chosen_model_variant_v2, kModelVariantComboItemsV2.data(),
+                     static_cast<std::int32_t>(kModelVariantComboItemsV2.size()));
+        static_assert(1 == static_cast<std::int32_t>(ufld::Version::kV2));
+        ufld_settings_.model_version = ufld::Version::kV2;
+        static_assert(0 == static_cast<std::int32_t>(ufld::v2::Variant::kCULane18));
+        static_assert(1 == static_cast<std::int32_t>(ufld::v2::Variant::kCULane34));
+        static_assert(2 == static_cast<std::int32_t>(ufld::v2::Variant::kCurveLanes18));
+        static_assert(3 == static_cast<std::int32_t>(ufld::v2::Variant::kCurveLanes34));
+        static_assert(4 == static_cast<std::int32_t>(ufld::v2::Variant::kTuSimple18));
+        static_assert(5 == static_cast<std::int32_t>(ufld::v2::Variant::kTuSimple34));
+        ufld_settings_.model_variant = static_cast<ufld::v2::Variant>(chosen_model_variant_v2);
+      } break;
       default:
-        throw std::logic_error{"Unknown model version"};
+        throw std::logic_error{"Unhandled UFLD model version"};
     }
   }
   ImGui::EndDisabled();

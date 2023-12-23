@@ -30,7 +30,7 @@ Overloaded(Ts...) -> Overloaded<Ts...>;
 /**
  * Ultra-Fast-Lane-Detection version.
  */
-export enum class Version { kV1 };
+export enum class Version { kV1, kV2 };
 
 namespace v1 {
 /**
@@ -41,13 +41,26 @@ namespace v1 {
 export enum class Variant { kCULane, kTuSimple };
 }  // namespace v1
 
+namespace v2 {
+/**
+ * Variant of Ultra-Fast-Lane-Detection V2:
+ *    CULane18 -> ufld_v2_culane_res18_320x1600.onnx
+ *    CUlane34 -> ufld_v2_culane_res34_320x1600.onnx
+ *    CurveLanes18 -> ufld_v2_curvelanes_res18_800x1600.onnx
+ *    CurveLanes34 -> ufld_v2_curvelanes_res34_800x1600.onnx
+ *    TuSimple18 -> ufld_v2_tusimple_res18_320x800.onnx
+ *    TuSimple34 -> ufld_v2_tusimple_res34_320x800.onnx
+ */
+export enum class Variant { kCULane18, kCULane34, kCurveLanes18, kCurveLanes34, kTuSimple18, kTuSimple34 };
+}  // namespace v2
+
 /**
  * Ultra-Fast-Lane-Detection settings.
  */
 export struct Settings {
   std::filesystem::path model_directory{};
   Version model_version{Version::kV1};
-  std::variant<v1::Variant> model_variant{v1::Variant::kCULane};
+  std::variant<v1::Variant, v2::Variant> model_variant{v1::Variant::kCULane};
 };
 
 /**
@@ -101,10 +114,11 @@ class LaneDetector {
 
   [[nodiscard]] std::filesystem::path ModelDirectory() const;
   [[nodiscard]] Version ModelVersion() const;
-  [[nodiscard]] std::variant<v1::Variant> ModelVariant() const;
+  [[nodiscard]] std::variant<v1::Variant, v2::Variant> ModelVariant() const;
 
  protected:
-  LaneDetector(std::filesystem::path model_path, Version model_version, std::variant<v1::Variant> model_variant);
+  LaneDetector(std::filesystem::path model_path, Version model_version,
+               std::variant<v1::Variant, v2::Variant> model_variant);
 
   [[nodiscard]] PreProcessResult PreProcess(cv::Mat&& image) const;
 
@@ -120,7 +134,7 @@ class LaneDetector {
   std::filesystem::path model_directory_{};
   std::string cache_directory_string_{};  // String for lifetime
   Version model_version_{};
-  std::variant<v1::Variant> model_variant_{};
+  std::variant<v1::Variant, v2::Variant> model_variant_{};
 
   Ort::Env env_{ORT_LOGGING_LEVEL_WARNING, "UFLD"};
   Ort::Session session_{nullptr};
@@ -180,13 +194,13 @@ Version LaneDetector<C>::ModelVersion() const {
 }
 
 template <class C>
-std::variant<v1::Variant> LaneDetector<C>::ModelVariant() const {
+std::variant<v1::Variant, v2::Variant> LaneDetector<C>::ModelVariant() const {
   return model_variant_;
 }
 
 template <class C>
 LaneDetector<C>::LaneDetector(std::filesystem::path model_path, Version model_version,
-                              std::variant<v1::Variant> model_variant)
+                              std::variant<v1::Variant, v2::Variant> model_variant)
 
     : model_directory_{model_path.parent_path()},
       cache_directory_string_{(model_path.parent_path() / "cache").string()},
@@ -224,7 +238,8 @@ InferenceResult LaneDetector<C>::Inference(const cv::Mat& image) {
   session_.Run(Ort::RunOptions{nullptr}, &input_name, &input_tensor, 1, OutputNamesToRaw().data(),
                output_tensors.data(), output_tensors.size());
 
-  return {.outputs = std::move(output_tensors), .duration = Duration(start_time, std::chrono::high_resolution_clock::now())};
+  return {.outputs = std::move(output_tensors),
+          .duration = Duration(start_time, std::chrono::high_resolution_clock::now())};
 }
 
 template <class C>
