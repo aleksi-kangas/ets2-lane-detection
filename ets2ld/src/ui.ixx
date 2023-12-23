@@ -211,7 +211,25 @@ void ets2ld::UI::RenderPreview(State state) {
         ImGui::Text("Initializing OnnxRuntime and loading model... This may take a while.");
       } break;
       case State::kActive: {
-        ImGui::Image(static_cast<void*>(preview_srv_.p), ImGui::GetContentRegionAvail(), ImVec2{0, 0}, ImVec2{1, 1});
+        if (preview_texture_ == nullptr || preview_srv_ == nullptr) {
+          ImGui::Image(nullptr, ImGui::GetContentRegionAvail(), ImVec2{0, 0}, ImVec2{1, 1});
+          break;
+        }
+        const ImVec2 available_region = ImGui::GetContentRegionAvail();
+        const float available_region_aspect_ratio = available_region.x / available_region.y;
+        D3D11_TEXTURE2D_DESC texture_desc{};
+        preview_texture_->GetDesc(&texture_desc);
+        const ImVec2 preview_size{static_cast<float>(texture_desc.Width), static_cast<float>(texture_desc.Height)};
+        const float preview_aspect_ratio = preview_size.x / preview_size.y;
+        ImVec2 image_size{};
+        if (available_region_aspect_ratio > preview_aspect_ratio) {
+          image_size.x = available_region.y * preview_aspect_ratio;
+          image_size.y = available_region.y;
+        } else {
+          image_size.x = available_region.x;
+          image_size.y = available_region.x / preview_aspect_ratio;
+        }
+        ImGui::Image(static_cast<void*>(preview_srv_.p), image_size, ImVec2{0, 0}, ImVec2{1, 1});
       } break;
       default:
         throw std::logic_error{"Unknown state"};
