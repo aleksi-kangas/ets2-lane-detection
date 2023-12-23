@@ -344,7 +344,7 @@ void ets2ld::UI::RenderSettingsModel(State state) {
     // Model selection
     ImGui::Text("Ultra-Fast-Lane-Detection");
     static constexpr std::array<const char*, 2> kModelVersionComboItems{{"V1", "V2"}};
-    static std::int32_t chosen_model_version{0};
+    static std::int32_t chosen_model_version{1};
     ImGui::Combo("Version", &chosen_model_version, kModelVersionComboItems.data(),
                  static_cast<std::int32_t>(kModelVersionComboItems.size()));
 
