@@ -272,7 +272,7 @@ void ets2ld::UI::CreateUIWindow() {
   wc_.lpszClassName = L"ETS2 Lane Detection";
   ::RegisterClassExW(&wc_);
 
-  hwnd_ = CreateWindowExW(0, wc_.lpszClassName, wc_.lpszClassName, WS_OVERLAPPEDWINDOW, 300, 300, 1280, 720, nullptr,
+  hwnd_ = CreateWindowExW(0, wc_.lpszClassName, wc_.lpszClassName, WS_OVERLAPPEDWINDOW, 300, 300, 1280, 480, nullptr,
                           nullptr, wc_.hInstance, this);
   if (!hwnd_) {
     throw std::runtime_error{"Failed to create window"};
@@ -334,7 +334,7 @@ void ets2ld::UI::RenderSettingsGeneral(State state) {
   ImGui::SeparatorText("General");
   ImGui::BeginDisabled(state == State::kInitializing);
   {
-    static bool lane_detection_enabled{false};
+    bool lane_detection_enabled = state != State::kIdle;
     if (ImGui::Checkbox("Enable", &lane_detection_enabled)) {
       if (on_lane_detection_enable_change_) {
         on_lane_detection_enable_change_(lane_detection_enabled);

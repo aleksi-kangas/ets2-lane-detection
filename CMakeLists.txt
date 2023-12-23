@@ -16,7 +16,7 @@ add_subdirectory(capture)
 add_subdirectory(ets2ld)
 add_subdirectory(ufld)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} WIN32 main.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "ets2ld")
 target_link_libraries(${PROJECT_NAME} PUBLIC ets2ld)
 target_compile_options(${PROJECT_NAME} PRIVATE /W4)
