@@ -3,7 +3,7 @@
 ## Requirements
 
 - Windows 10/11
-- [CMake 3.27](https://cmake.org/download/)
+- [CMake 3.28+](https://cmake.org/download/)
 - [MSVC 17.8.3+ with C++ modules support](https://visualstudio.microsoft.com/downloads/)
 - (Optional but highly
   recommended) [NVIDIA GPU with support for TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/support-matrix)
