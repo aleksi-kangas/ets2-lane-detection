@@ -4,6 +4,8 @@
 
 > Lane detection for Euro Truck Simulator 2 using Ultra-Fast-Lane-Detection V1 & V2
 
+![Preview](docs/preview.gif)
+
 ## Usage
 
 Requires Windows 10/11 and optionally an NVIDIA GPU with support for TensorRT.
